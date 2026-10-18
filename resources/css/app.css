@@ -1,8 +1,6 @@
-@import '@fontsource/inter/latin-400.css';
-@import '@fontsource/inter/latin-500.css';
-@import '@fontsource/source-serif-4/latin-400.css';
-@import '@fontsource/source-serif-4/latin-400-italic.css';
-@import '@fontsource/source-serif-4/latin-600.css';
+@import '@fontsource-variable/fraunces/full.css';
+@import '@fontsource-variable/fraunces/full-italic.css';
+@import '@fontsource-variable/manrope/index.css';
 
 :root {
     --wit: #ece9f2;
@@ -12,8 +10,8 @@
     --naam: max(32px, 3.1vh);
     --tekst: max(32px, 3.6vh);
     --titel: max(48px, 6.6vh);
-    --serif: 'Source Serif 4', Georgia, serif;
-    --sans: 'Inter', system-ui, sans-serif;
+    --serif: 'Fraunces Variable', Georgia, serif;
+    --sans: 'Manrope Variable', system-ui, sans-serif;
 }
 
 * {
@@ -28,6 +26,7 @@ body {
     background: radial-gradient(ellipse 120% 80% at 50% 115%, #0c1730 0%, #060b18 45%, #020308 100%);
     color: var(--wit);
     font-family: var(--sans);
+    font-weight: 500;
     -webkit-font-smoothing: antialiased;
     user-select: none;
 }
@@ -55,7 +54,7 @@ body.geen-cursor * {
     top: 0;
     left: 0;
     font-size: var(--naam);
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
     color: var(--zacht);
     text-shadow: 0 0 12px #020308, 0 0 4px #020308;
@@ -519,4 +518,14 @@ body.geen-cursor * {
     color: var(--goud);
     font-variant-numeric: tabular-nums;
     text-shadow: 0 0 30px rgba(2, 3, 8, 0.9);
+}
+
+/* Fraunces met een zachte, warme vorm; de optische grootte past zich aan de lettergrootte aan. */
+* {
+    font-optical-sizing: auto;
+}
+
+[class],
+body {
+    font-variation-settings: 'SOFT' 60;
 }

@@ -28,7 +28,7 @@ export function maten(H: number) {
 const meetCanvas = document.createElement('canvas').getContext('2d')!;
 
 function labelBreedte(naam: string, H: number): number {
-  meetCanvas.font = `500 ${maten(H).naam}px Inter`;
+  meetCanvas.font = `600 ${maten(H).naam}px 'Manrope Variable'`;
   return meetCanvas.measureText(naam).width;
 }
 
