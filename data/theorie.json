@@ -1,0 +1,93 @@
+{
+  "_uitleg": "Theoriekaarten. Elk punt verschijnt na een klik. Eerste versie, opgesteld uit Filosofie-euthanasie.pdf (paginanummers in 'bron'). 'aanvullen' staat alleen in het hulpvenster (H): wat jullie zelf nog moeten uitzoeken of formuleren.",
+  "kaarten": [
+    {
+      "id": "kader",
+      "titel": "Twee manieren om naar het leven te kijken",
+      "punten": [
+        "Humanistisch verlichtingsdenken: elke persoon beschikt zelf over zijn leven, lichaam en levenseinde.",
+        "Christelijk, ruimer monotheïstisch denken: het leven behoort ons niet toe, het ligt in Gods handen.",
+        "Het eerste standpunt is pro euthanasie en abortus, het tweede contra.",
+        "Jullie sterrenhemel staat op precies die as."
+      ],
+      "bron": "p. 1",
+      "aanvullen": []
+    },
+    {
+      "id": "wet",
+      "titel": "Wat zegt de wet? (sinds 2002)",
+      "punten": [
+        "De patiënt is meerderjarig of ontvoogd minderjarig, handelingsbekwaam en bewust bij het verzoek.",
+        "Het verzoek is vrijwillig, overwogen en herhaald, zonder druk van buitenaf.",
+        "Een medisch uitzichtloze toestand van aanhoudend en ondraaglijk fysiek of psychisch lijden dat niet gelenigd kan worden.",
+        "Het gevolg van een ernstige en ongeneeslijke aandoening, door ziekte of ongeval.",
+        "Sinds 2014 ook voor kinderen, onder strengere voorwaarden en niet wegens psychisch lijden."
+      ],
+      "bron": "p. 1, p. 3 en Art. 3 op p. 10",
+      "aanvullen": ["Jullie eigen definitie van euthanasie (vraag 1.1).", "Wat de strengere voorwaarden voor kinderen precies zijn (vraag 1.3)."]
+    },
+    {
+      "id": "uitvoering",
+      "titel": "Als het moeilijk wordt",
+      "punten": [
+        "Luik: een terminaal zieke vrouw werd na een mislukte euthanasie verstikt met een kussen. Het parket opende een onderzoek.",
+        "Na het assisenproces rond Tine Nys (2020) twijfelen sommige Vlaamse artsen om euthanasie uit te voeren.",
+        "Ook voor de arts is het zwaar. LEIF-arts Patrick Wyffels: 'Ik wil niet dat het went.'",
+        "De patiënt kiest waar het gebeurt en wie erbij is, en heeft altijd het laatste woord."
+      ],
+      "bron": "p. 4, p. 11 tot 13, p. 15",
+      "aanvullen": ["Hoe een euthanasie verloopt (vraag 2.1)."]
+    },
+    {
+      "id": "ethiek",
+      "titel": "Kritiek en grensvragen",
+      "punten": [
+        "Chris Gastmans (KU Leuven): te veel nadruk op autonomie, terwijl we in verbondenheid leven. Betrek de familie meer.",
+        "Euthanasiestop, gedragen door onder meer katholieken, moslims en artsen, voert campagne tegen de wet.",
+        "Gevraagde uitbreiding 1: dementie. In Nederland kan het onder voorwaarden, in België niet.",
+        "Gevraagde uitbreiding 2: voltooid leven, zonder ondraaglijk en uitzichtloos lijden.",
+        "Dreigt een hellend vlak, waarbij euthanasie steeds makkelijker wordt?"
+      ],
+      "bron": "p. 1, p. 5 en 6",
+      "aanvullen": ["Minstens drie argumenten van Euthanasiestop (vraag 4.1).", "Het standpunt van de Katholieke Kerk en andere religies."]
+    },
+    {
+      "id": "cijfers",
+      "titel": "De cijfers",
+      "punten": [
+        "2022: zo'n 3.000 euthanasies, bijna 10 procent meer. Verklaring volgens Distelmans: de wet is beter bekend.",
+        "Vooral mensen met ongeneeslijke kanker. Bijna 70 procent was ouder dan 70, onder de 40 jaar 1,2 procent.",
+        "Dementie en psychiatrische aandoeningen blijven uitzonderlijk.",
+        "Je hoeft geen Belg te zijn. Buitenlanders: 23 (2016-2017), 45 (2018-2019), 79 (2020-2021).",
+        "Legaal in de EU: Nederland, België, Luxemburg, Spanje, Portugal en Oostenrijk. Ook in enkele staten van de VS."
+      ],
+      "bron": "p. 2, p. 14 tot 17",
+      "aanvullen": ["Evolutie van geweigerde aanvragen en van aanvragen wegens psychisch lijden (vragen 3.1 en 3.2)."]
+    },
+    {
+      "id": "afbakening",
+      "titel": "Wat euthanasie níet is",
+      "punten": [
+        "Palliatieve sedatie: wat is het verschil met euthanasie?",
+        "Assisted suicide: wat is het en waar mag het?",
+        "Zelfdoding: in België proberen dagelijks zeventig mensen een einde aan hun leven te maken.",
+        "Praat erover. Tele-Onthaal 106, Zelfmoordlijn 1813."
+      ],
+      "bron": "p. 7 en 8",
+      "aanvullen": ["De uitleg bij palliatieve sedatie en assisted suicide (vragen 5.1 en 5.3). Het document stelt alleen de vragen."]
+    },
+    {
+      "id": "abortus",
+      "titel": "Abortus in België",
+      "punten": [
+        "Niet strafbaar tot 12 weken, in een erkend centrum of ziekenhuis.",
+        "Eerst een psychosociaal gesprek en medisch onderzoek, daarna zes dagen verplichte wachttijd.",
+        "Na 12 weken strafbaar, tenzij ernstig gevaar voor de vrouw of een zeer ernstige, ongeneeslijke aandoening bij het kind.",
+        "Nederland: tot 24 weken. VS: in 2022 werd het federale recht op abortus afgevoerd.",
+        "Pro-life: abortus is het doden van ongeboren leven. Pro-choice: baas in eigen buik."
+      ],
+      "bron": "p. 8 en 9",
+      "aanvullen": ["Waarom sommige partijen naar 18 weken willen.", "Vanaf wanneer het ongeboren leven pijn of angst kan ervaren (eigen opzoekwerk)."]
+    }
+  ]
+}

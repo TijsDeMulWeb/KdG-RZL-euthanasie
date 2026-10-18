@@ -1,0 +1,108 @@
+{
+  "_uitleg": "Antwoorden op de publieksvragen. Codes zoals de leerling ze invulde: 1 = eens, 2 = oneens, 3 = twijfel. 'tegenstrijdig' = cijfer strookt niet met de uitleg; 'bedoeld' = wat de uitleg zegt. 'gevoelig' = schreef vanuit persoonlijke ervaring, niet zonder toestemming uitlichten.",
+  "stellingen": {
+    "s1": "Ik ben blij dat ik in een land woon waarin ik recht heb op euthanasie als ik ooit zou lijden aan een ondraaglijke ziekte die niet te behandelen valt.",
+    "s2": "Ik vind het terecht dat euthanasie bij dementerende patiënten, die niet meer helder kunnen formuleren wat ze willen, verboden is in België.",
+    "s3": "Ik vind het terecht dat in ons land mensen met langdurige en onbehandelbare depressies recht hebben op euthanasie als ze daarnaar vragen.",
+    "s4": "Ik vind het terecht dat Geneviève Lhermitte, de vrouw die haar vijf kinderen ombracht, na haar gevangenisstraf recht had op euthanasie wegens psychisch lijden.",
+    "s5": "Ik vind dat mensen die op hoge leeftijd oordelen dat hun leven voltooid is, recht hebben op euthanasie, ook al lijden ze niet aan een ernstige ziekte.",
+    "s6": "In ons land kan een vrouw op eenvoudig verzoek een abortus laten uitvoeren tot 12 weken zwangerschap. Ik vind dat correct."
+  },
+  "klas": [
+    { "naam": "Lorenzo", "antwoorden": { "s1": 1, "s2": 1, "s3": 1, "s4": 3, "s5": 1, "s6": 1 }, "gevoelig": ["s1"],
+      "citaten": {
+        "s1": "Als dit mij zou overkomen, ben ik blij dat er de optie is.",
+        "s3": "Ik vind het goed dat de optie er is, maar wel als echt laatste optie.",
+        "s4": "Aan de andere kant is ze in mijn ogen niet echt gestraft geweest.",
+        "s5": "Elke dag in de zetel zitten en niks doen, dan heb je toch niet veel aan het leven." } },
+    { "naam": "Kyara", "antwoorden": { "s1": 1, "s2": 1, "s3": 1, "s4": 1, "s5": 1, "s6": 1 },
+      "citaten": {
+        "s1": "Ik zou niet onnodig willen lijden gewoon omdat het tegen de regels is om dood te gaan.",
+        "s3": "Ik vind dat ze wel eerst alle mogelijke hulp verdienen.",
+        "s5": "Het is wel een moeilijke lijn om te trekken: vanaf welke leeftijd zou dit dan toegestaan worden?" } },
+    { "naam": "Franka", "antwoorden": { "s1": 1, "s2": 2, "s3": 1, "s4": 1, "s5": 3, "s6": 1 },
+      "citaten": {
+        "s1": "Als ik weet dat ik doodga en niet meer kan leven met de pijn, wil ik de optie hebben.",
+        "s2": "Als de persoon recht heeft gegeven aan een naaste om euthanasie te autoriseren, vind ik dat het moet kunnen.",
+        "s4": "Mijn eerste reactie is nee, maar als je het hele artikel leest, ja.",
+        "s5": "Als de patiënt geen naasten meer heeft en eenzaam is, dan is dat ook ondraaglijk lijden.",
+        "s6": "12 weken is echt suuuuper kort." } },
+    { "naam": "Ceyda", "antwoorden": { "s1": 3, "s2": 1, "s3": 3, "s4": 3, "s5": 2, "s6": 1 },
+      "citaten": {
+        "s1": "Ik denk ook dat euthanasie ervoor kan zorgen dat mensen sneller opgeven.",
+        "s3": "Er zijn misschien familieleden en vrienden die hen niet willen verliezen.",
+        "s4": "Misschien had ze rust kunnen vinden door nog iets goeds te betekenen voor de wereld.",
+        "s5": "Persoonlijk zou ik het heel erg gevonden hebben als mijn grootouders zo'n beslissing hadden genomen.",
+        "s6": "Uiteindelijk vind ik dat het haar lichaam is en dus ook haar keuze." } },
+    { "naam": "Nicolas", "antwoorden": { "s1": 2, "s2": 3, "s3": 1, "s4": 2, "s5": 3, "s6": 3 },
+      "citaten": {
+        "s1": "Het is eerder een gunst onder strikte voorwaarden dan een werkelijk zelfbeschikkingsrecht.",
+        "s2": "Zolang iemand nog heldere momenten heeft, zou die zelf de regie moeten kunnen behouden.",
+        "s3": "Psychisch lijden kan even destructief en ondraaglijk zijn als fysiek lijden.",
+        "s4": "Het voelt diep onrechtvaardig ten opzichte van de slachtoffers dat de dader alsnog een uitweg krijgt.",
+        "s5": "De grens tussen pure zelfbeschikking en externe factoren maakt het moeilijk om ja of nee te zeggen." } },
+    { "naam": "Wout", "antwoorden": { "s1": 1, "s2": 2, "s3": 1, "s4": 1, "s5": 1, "s6": 2 },
+      "tegenstrijdig": { "s4": { "bedoeld": 2, "uitleg": "Vulde 1 in, maar schreef: 'nee, zij verdient te lijden'." } },
+      "citaten": {
+        "s1": "Het is goed dat je de optie hebt.",
+        "s2": "Ik vind dat familie dat ook mag kunnen doen, maar alleen als zij de juiste bedoelingen hebben.",
+        "s3": "Het is hun keuze.",
+        "s5": "Het is hun keuze.",
+        "s6": "Iets te makkelijk." } },
+    { "naam": "Kimberly", "antwoorden": { "s1": 1, "s2": 3, "s3": 1, "s4": 1, "s5": 1, "s6": 1 },
+      "citaten": {
+        "s1": "Ik zou het onmenselijk vinden moest ik ondraaglijk lijden en er geen einde aan mogen maken.",
+        "s2": "Ik weet niet of het zo eerlijk is om iemands autonomie over zijn eigen leven af te nemen omdat die dement is.",
+        "s3": "We zouden zelf moeten kunnen beslissen of we willen verder leven of niet.",
+        "s5": "Wie ben ik om te zeggen dat ze moeten blijven doorleven of niet?" } },
+    { "naam": "Florian", "antwoorden": { "s1": 1, "s2": 2, "s3": 3, "s4": 2, "s5": 1, "s6": 1 },
+      "citaten": {
+        "s1": "Het is goed dat mensen geen drastische maatregelen moeten nemen om hun leven te beëindigen.",
+        "s3": "Ja, maar pas echt na een langdurige depressie die echt niet weggaat.",
+        "s4": "Levenslang moet effectief levenslang blijven. Euthanasie is hier gewoon een manier om je straf te ontsnappen.",
+        "s5": "Als ze geen familie of reden meer hebben om te leven, is het beter dat ze zelf kunnen beslissen.",
+        "s6": "Ik vind dat het nog hun keuze is." },
+      "opgelet": "Schreef bij s5 ook dat voltooid leven 'economisch beter' zou zijn (pensioenen). Scherp en een brug naar Plan 75, maar niet standaard tonen." },
+    { "naam": "Sky", "antwoorden": { "s1": 1, "s2": 1, "s3": 3, "s4": 2, "s5": 1, "s6": 3 }, "gevoelig": ["s2"],
+      "citaten": {
+        "s1": "Soms is het leven door bepaalde ziektes zo ondraaglijk dat verder leven onmogelijk wordt.",
+        "s2": "Net zoals iemand die veel gedronken heeft niet meer helder kan nadenken of beslissen.",
+        "s3": "Een depressie zorgt ervoor dat iemand heel negatief in het leven staat. Daarom vind ik het geen goed idee om die persoon zelf te laten beslissen.",
+        "s4": "Ik vind gerechtigheid voor de vijf kinderen belangrijker.",
+        "s5": "Iedereen mag zelf over zijn eigen leven beslissen, zolang die persoon mentaal en fysiek gezond is.",
+        "s6": "Ik vind het moeilijk om te zeggen dat abortus helemaal niet meer mag, maar ook om te zeggen dat het altijd moet kunnen." } },
+    { "naam": "Eda", "antwoorden": { "s1": 2, "s2": 1, "s3": 2, "s4": 2, "s5": 2, "s6": 2 },
+      "citaten": {
+        "s1": "Ik denk dat het leven waardevol is, ook als iemand veel pijn heeft.",
+        "s2": "Het is moeilijk om zeker te weten wat iemand wil als die het niet meer duidelijk kan zeggen.",
+        "s3": "Mensen met een zware depressie hebben vooral hulp, steun en een goede behandeling nodig.",
+        "s4": "We moeten eerst kijken welke andere hulp mogelijk is.",
+        "s5": "Het leven blijft waardevol, ook als iemand oud is of het gevoel heeft dat het voltooid is.",
+        "s6": "Vanuit mijn geloof vind ik dat het leven beschermd moet worden." } },
+    { "naam": "Jens", "antwoorden": { "s1": 1, "s2": 2, "s3": 1, "s4": 2, "s5": 1, "s6": 1 },
+      "citaten": {
+        "s1": "Voor de persoon zelf is het soms beter om te sterven dan om verder te leven.",
+        "s2": "Als iemand niet meer zelf kan beslissen, zou de familie dat mogen beslissen.",
+        "s3": "Ik zou er wel regels aan verbinden, bijvoorbeeld niet jonger dan 25 jaar.",
+        "s4": "Nee. Euthanasie is een snelle oplossing.",
+        "s5": "Het is jouw leven en je zou zelf mogen beslissen wanneer je het beëindigt.",
+        "s6": "Ik denk wel dat er eerst andere opties overwogen moeten worden." } },
+    { "naam": "Romy", "antwoorden": { "s1": 1, "s2": 2, "s3": 1, "s4": 1, "s5": 1, "s6": 2 }, "gevoelig": ["s3"],
+      "tegenstrijdig": { "s2": { "bedoeld": 1, "uitleg": "Vulde 2 in, maar schreef dat ze begrijpt waarom het verboden is." } },
+      "citaten": {
+        "s1": "Zelf zou ik die beslissing nooit voor iemand anders kunnen nemen.",
+        "s2": "Ik wist niet dat dit verboden was, maar ik begrijp waarom.",
+        "s3": "Als er geen behandeling meer mogelijk is en iemand zelf om euthanasie vraagt, moet die mogelijkheid er zijn.",
+        "s4": "Wat zij heeft gedaan is verschrikkelijk, maar als zij ondraaglijk psychisch leed, moest die mogelijkheid er ook voor haar zijn.",
+        "s5": "Als ze daar goed over hebben nagedacht en het echt zelf willen, moeten ze het recht hebben.",
+        "s6": "Sommige vrouwen merken pas na twaalf weken dat ze zwanger zijn." } },
+    { "naam": "Alexis", "antwoorden": { "s1": 1, "s2": 3, "s3": 1, "s4": 2, "s5": 3, "s6": 2 },
+      "tegenstrijdig": { "s6": { "bedoeld": 1, "uitleg": "Vulde 2 in, maar schreef: 'Ik ga hier sterk mee akkoord'." } },
+      "citaten": {
+        "s1": "Wel enkel als er ECHT geen andere uitweg is.",
+        "s2": "Ze verliezen wel autonomie, maar ik denk niet dat ze ondraaglijke pijn hebben.",
+        "s3": "Beter in een veilige en gecontroleerde omgeving.",
+        "s4": "Dit is een te goedkope uitweg voor het leed dat ze heeft aangedaan.",
+        "s5": "Ik vrees dat euthanasie dan te licht zou worden toegepast." } }
+  ]
+}

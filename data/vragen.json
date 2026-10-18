@@ -1,0 +1,35 @@
+{
+  "_uitleg": "Vragen voor de gsm's. Types: open, herstemming (alle stellingen tegelijk), keuze (met 'juist' = index van het juiste antwoord), getal (met 'antwoord'), schuif (met 'markeringen'), stelling (eens/twijfel/oneens over een stelling uit klas.json). 'bron' verwijst naar Filosofie-euthanasie.pdf.",
+  "vragen": [
+    { "id": "betekenis", "type": "open", "tekst": "Voor mij betekent euthanasie...", "maxLengte": 80 },
+
+    { "id": "wet-terminaal", "type": "keuze", "tekst": "Je moet terminaal ziek zijn om euthanasie te krijgen.", "opties": ["Waar", "Niet waar"], "juist": 1,
+      "uitleg": "De wet vraagt een medisch uitzichtloze toestand van aanhoudend en ondraaglijk lijden, niet dat je terminaal bent.", "bron": "p. 3 en Art. 3, p. 10" },
+    { "id": "wet-psychisch", "type": "keuze", "tekst": "Ook ondraaglijk psychisch lijden kan een grond zijn voor euthanasie.", "opties": ["Waar", "Niet waar"], "juist": 0,
+      "uitleg": "De wet spreekt van fysiek of psychisch lijden dat niet gelenigd kan worden.", "bron": "p. 1 en Art. 3, p. 10" },
+    { "id": "wet-dementie", "type": "keuze", "tekst": "Wie vroeger op papier zette dat hij euthanasie wil bij dementie, kan die later krijgen.", "opties": ["Waar", "Niet waar"], "juist": 1,
+      "uitleg": "In België moet je wilsbekwaam zijn op het moment van de euthanasie. In Nederland kan het onder voorwaarden wel.", "bron": "p. 6" },
+    { "id": "wet-familie", "type": "keuze", "tekst": "De familie moet akkoord gaan met de euthanasie.", "opties": ["Waar", "Niet waar"], "juist": 1,
+      "uitleg": "De familie moet in principe niet gehoord worden. De patiënt heeft het laatste woord.", "bron": "p. 5 en p. 13" },
+    { "id": "wet-kinderen", "type": "keuze", "tekst": "Sinds 2014 kunnen kinderen euthanasie krijgen wegens psychisch lijden.", "opties": ["Waar", "Niet waar"], "juist": 1,
+      "uitleg": "Sinds 2014 kunnen kinderen onder strikte voorwaarden euthanasie krijgen, maar niet omwille van psychisch lijden.", "bron": "p. 1" },
+    { "id": "wet-belg", "type": "keuze", "tekst": "Je moet Belg zijn om in België euthanasie te krijgen.", "opties": ["Waar", "Niet waar"], "juist": 1,
+      "uitleg": "De Belgische euthanasiewet vereist niet dat iemand Belg is.", "bron": "p. 15" },
+
+    { "id": "voltooid", "type": "open", "tekst": "Wanneer is een leven voltooid?", "maxLengte": 80 },
+
+    { "id": "cijfer-2022", "type": "getal", "tekst": "Hoeveel mensen kregen in 2022 euthanasie in België?", "min": 0, "max": 20000, "antwoord": 3000,
+      "uitleg": "Zo'n 3.000 mensen, een stijging van bijna 10 procent.", "bron": "p. 14, VRT NWS februari 2023" },
+    { "id": "cijfer-70", "type": "getal", "tekst": "Hoeveel procent van hen was ouder dan 70?", "min": 0, "max": 100, "eenheid": "%", "antwoord": 70,
+      "uitleg": "Bijna 70 procent. Onder de 40 jaar was het 1,2 procent.", "bron": "p. 15" },
+
+    { "id": "herstemming", "type": "herstemming", "tekst": "Stem opnieuw: wat vind je nu?", "stellingen": ["s1", "s2", "s3", "s4", "s5", "s6"] },
+
+    { "id": "abortus-weken", "type": "schuif", "tekst": "Tot hoeveel weken zou abortus op eenvoudig verzoek mogen?", "min": 0, "max": 30, "eenheid": "weken",
+      "markeringen": [
+        { "waarde": 12, "label": "België nu" },
+        { "waarde": 18, "label": "voorstel van sommige partijen" },
+        { "waarde": 24, "label": "Nederland" }
+      ], "bron": "p. 8" }
+  ]
+}

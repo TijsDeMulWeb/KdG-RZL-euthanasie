@@ -1,0 +1,21 @@
+{
+  "_uitleg": "Commissiedossiers uit het lesplan (ronde 6). 'kaart' staat op het scherm zonder naam; 'onthulling' volgt na de stemming.",
+  "dossiers": [
+    { "id": "trauma", "stelling": "s3", "titel": "Jonge vrouw, trauma",
+      "kaart": ["Vrouw, 23 jaar.", "Overleefde als 17-jarige een terreuraanslag.", "Zware posttraumatische stress en depressie.", "Jaren behandeling, geen verbetering."],
+      "onthulling": "Shanti De Corte kreeg in 2022 euthanasie. Er kwam een klacht en de zaak werd onderzocht.",
+      "duel": ["Nicolas", "Sky"] },
+    { "id": "misdaad", "stelling": "s4", "titel": "Vrouw na misdaad",
+      "kaart": ["Vrouw doodde jaren geleden haar vijf kinderen.", "Levenslang veroordeeld, in 2019 vrijgelaten.", "Verblijft in een psychiatrisch centrum.", "Vraagt euthanasie wegens psychisch lijden."],
+      "onthulling": "Geneviève Lhermitte kreeg in 2023 euthanasie.",
+      "duel": ["Franka", "Florian"], "tegenspraak": true },
+    { "id": "voltooid", "stelling": "s5", "titel": "Voltooid leven",
+      "kaart": ["Vrouw van in de 80.", "Niet ernstig ziek.", "Verloor haar partner, twee kinderen en een kleinkind.", "\"Waarom moet ik eerst ondraaglijk lijden?\""],
+      "onthulling": "Lutgart Simoens. Voltooid leven is in België geen grond voor euthanasie.",
+      "duel": ["Kimberly", "Ceyda"] },
+    { "id": "dementie", "stelling": "s2", "titel": "Dementie",
+      "kaart": ["Man schreef jaren geleden: euthanasie als ik mijn familie niet meer herken.", "Nu herkent hij hen niet meer.", "Hij lijkt rustig.", "Wie beslist?"],
+      "onthulling": "In België kan dit niet, want hij is niet meer wilsbekwaam. In Nederland kan het onder voorwaarden wel.",
+      "duel": ["Sky", "Kimberly"] }
+  ]
+}
