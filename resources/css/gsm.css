@@ -468,3 +468,46 @@ a {
 body {
     font-variation-settings: 'SOFT' 60;
 }
+
+.melding {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: calc(96px + env(safe-area-inset-bottom));
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #3a1d1a;
+    color: #f2c7bd;
+    font-size: 15px;
+    line-height: 1.4;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.lijst .rij {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+button.toon {
+    flex: none;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.lijst li.getoond {
+    margin: 0 -10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 12px;
+    background: rgba(217, 187, 127, 0.1);
+}
+
+.lijst li.getoond button.toon {
+    border-color: var(--goud);
+    color: var(--goud);
+}

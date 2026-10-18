@@ -11,6 +11,7 @@ interface BeamerStand {
   scenes: string[];
   zwart: boolean;
   bekijk: string | null;
+  getoond: number | null;
   tijd: number;
 }
 
@@ -73,7 +74,14 @@ function groepen(vraag: VraagDef, antwoorden: Antwoord[]): string {
 
 function lijst(vraag: VraagDef, antwoorden: Antwoord[]): string {
   if (vraag.type === 'open') {
-    return antwoorden.map((a) => `<li><b>${esc(a.naam)}</b><span>${esc(String(a.waarde))}</span></li>`).join('');
+    const getoond = stand?.getoond ?? null;
+    return antwoorden
+      .map(
+        (a) => `<li class="${a.id === getoond ? 'getoond' : ''}"><div class="rij"><b>${esc(a.naam)}</b>
+          <button class="toon" data-toon="${a.id === getoond ? '' : a.id}">${a.id === getoond ? 'Verberg' : 'Toon op beamer'}</button></div>
+          <span>${esc(String(a.waarde))}</span></li>`,
+      )
+      .join('');
   }
   if (vraag.type === 'herstemming') {
     // Alleen tonen wat anders is dan op papier, dat is waar het gesprek over gaat.
@@ -122,7 +130,8 @@ async function ververs() {
     const vraag = bekijk ? vraagVoor(bekijk) : null;
     const antwoorden = vraag ? await api<Antwoord[]>('GET', `/presentator/antwoorden?vraag=${encodeURIComponent(vraag.id)}`) : [];
 
-    const levend = !!stand && Date.now() / 1000 - stand.tijd < 600;
+    // De beamer meldt zich elke 15 seconden; langer stil betekent dat hij dicht is of op een verborgen tabblad staat.
+    const levend = !!stand && Date.now() / 1000 - stand.tijd < 45;
     el.verbinding.className = `stip ${levend ? 'aan' : ''}`;
     el.verbinding.title = levend ? 'Beamer verbonden' : 'Geen beamer gevonden';
 
@@ -159,12 +168,30 @@ async function ververs() {
 
 // ---------- bediening ----------
 
-async function stuur(soort: string, scene?: number) {
+const melding = document.getElementById('melding')!;
+let meldingTimer = 0;
+function meld(tekst: string) {
+  melding.textContent = tekst;
+  melding.hidden = false;
+  clearTimeout(meldingTimer);
+  meldingTimer = window.setTimeout(() => (melding.hidden = true), 6000);
+}
+
+async function stuur(soort: string, scene?: number, antwoord?: number | null) {
   navigator.vibrate?.(12);
   try {
-    await api('POST', '/presentator/opdrachten', { soort, scene });
-  } catch {
+    await api('POST', '/presentator/opdrachten', { soort, scene, antwoord });
+    if (!stand || Date.now() / 1000 - stand.tijd > 45) meld('Verstuurd, maar de beamer reageert niet. Staat hij open en zichtbaar op de laptop?');
+  } catch (fout) {
     el.verbinding.className = 'stip fout';
+    const code = (fout as Error).message;
+    meld(
+      code === '419'
+        ? 'Je sessie is verlopen. Herlaad deze pagina.'
+        : code === '403'
+          ? 'Je bent niet ingelogd als presentator. Open eerst de inloglink in deze browser.'
+          : 'Geen verbinding met de server.',
+    );
   }
   window.setTimeout(ververs, 700);
 }
@@ -172,6 +199,12 @@ async function stuur(soort: string, scene?: number) {
 document.getElementById('vorige')!.addEventListener('click', () => stuur('vorige'));
 document.getElementById('volgende-knop')!.addEventListener('click', () => stuur('volgende'));
 el.zwart.addEventListener('click', () => stuur('zwart'));
+el.antwoorden.addEventListener('click', (event) => {
+  const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-toon]');
+  if (!knop) return;
+  // Een lege waarde betekent: het getoonde antwoord weer verbergen.
+  stuur('toon', undefined, knop.dataset.toon ? Number(knop.dataset.toon) : null);
+});
 el.scenes.addEventListener('click', (event) => {
   const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-scene]');
   if (knop) {

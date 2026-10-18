@@ -33,7 +33,7 @@ export function liveScene(
   naam: string,
   live: Live,
   stappen: LiveStap[],
-  extra: { klik?(sleutel: string | null, stap: number): void } = {},
+  extra: { klik?(sleutel: string | null, stap: number): void; toonAntwoord?(id: number | null): void; getoondAntwoord?(): number | null } = {},
 ): Scene {
   let i = 0;
   let stopLuisteren: (() => void) | null = null;
@@ -68,6 +68,8 @@ export function liveScene(
       live.open(null);
     },
     klik: extra.klik ? (sleutel) => extra.klik!(sleutel, i) : undefined,
+    toonAntwoord: extra.toonAntwoord,
+    getoondAntwoord: extra.getoondAntwoord,
     hulp(): Hulp {
       const stap = stappen[i];
       return {
@@ -168,6 +170,14 @@ export function openVraag(ctx: Ctx, live: Live, id: string): Scene {
       klik(sleutel) {
         gekozen = sleutel && sleutel.startsWith('gsm:') && sleutel !== gekozen && live.antwoordVan(sleutel) ? sleutel : null;
         render(false);
+      },
+      toonAntwoord(id) {
+        const antwoord = live.antwoorden.find((a) => a.id === id);
+        gekozen = antwoord ? live.sleutel(antwoord.deelnemer) : null;
+        render(false);
+      },
+      getoondAntwoord() {
+        return gekozen ? live.antwoordVan(gekozen)?.id ?? null : null;
       },
     },
   );

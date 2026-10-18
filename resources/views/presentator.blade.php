@@ -38,6 +38,8 @@
             </details>
         </div>
 
+        <p id="melding" class="melding" role="alert" hidden></p>
+
         <nav class="bediening">
             <button id="vorige" aria-label="Vorige">◀</button>
             <button id="zwart" aria-label="Scherm zwart">●</button>

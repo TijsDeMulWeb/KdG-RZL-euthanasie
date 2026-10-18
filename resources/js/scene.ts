@@ -21,6 +21,9 @@ export interface Scene {
   toets?(event: KeyboardEvent): boolean;
   /** Opruimen bij het verlaten, bv. een vraag op de gsm's sluiten. */
   verlaat?(): void;
+  /** Toont een antwoord van een gsm groot op de beamer (null = verbergen), op vraag van het presentatorscherm. */
+  toonAntwoord?(id: number | null): void;
+  getoondAntwoord?(): number | null;
   hulp(): Hulp;
 }
 

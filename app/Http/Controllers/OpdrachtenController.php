@@ -22,8 +22,9 @@ class OpdrachtenController extends Controller
     public function store(Request $request): JsonResponse
     {
         $opdracht = $request->validate([
-            'soort' => ['required', 'in:volgende,vorige,zwart,scene'],
+            'soort' => ['required', 'in:volgende,vorige,zwart,scene,toon'],
             'scene' => ['nullable', 'integer'],
+            'antwoord' => ['nullable', 'integer'],
         ]);
 
         $lijst = Cache::get('opdrachten', []);
