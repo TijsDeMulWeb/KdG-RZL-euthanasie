@@ -5,6 +5,7 @@ use App\Http\Controllers\AntwoordenController;
 use App\Http\Controllers\BeamerController;
 use App\Http\Controllers\BeamerStandController;
 use App\Http\Controllers\DeelnemersController;
+use App\Http\Controllers\InhoudController;
 use App\Http\Controllers\OpdrachtenController;
 use App\Http\Controllers\PresentatorController;
 use App\Http\Controllers\PresentatorSessieController;
@@ -27,6 +28,7 @@ Route::middleware(EnsurePresentator::class)->prefix('presentator')->group(functi
     Route::delete('deelnemers', [DeelnemersController::class, 'destroy'])->name('deelnemers.destroy');
     Route::get('antwoorden', [AntwoordenController::class, 'index'])->name('antwoorden.index');
     Route::delete('antwoorden', [AntwoordenController::class, 'destroy'])->name('antwoorden.destroy');
+    Route::get('inhoud', InhoudController::class)->name('inhoud');
     Route::get('beamer', [BeamerStandController::class, 'show'])->name('beamerStand.show');
     Route::put('beamer', [BeamerStandController::class, 'update'])->name('beamerStand.update');
     Route::get('opdrachten', [OpdrachtenController::class, 'index'])->name('opdrachten.index');

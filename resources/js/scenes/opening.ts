@@ -35,7 +35,7 @@ export function asLabels(ctx: Ctx, alpha = 1): Record<string, Vak> {
   };
 }
 
-export function leeg(ctx: Ctx): Scene {
+export function leeg(ctx: Ctx, titel: string): Scene {
   return lineair('Leeg', [
     {
       label: 'Eén ster en de titel',
@@ -44,7 +44,7 @@ export function leeg(ctx: Ctx): Scene {
           { achtergrond: 0, sterren: { [MIDDEN]: { ...middenPunt(ctx), size: 70, puls: 0.5 } }, camera: cameraOpMidden(ctx), duur: 2.4 },
           direct,
         );
-        ctx.overlay.toon({ titel: { regio: 'center', klasse: 'titel', html: 'Hoe ver mag zelfbeschikking gaan?', delay: 0.8 } }, direct);
+        ctx.overlay.toon({ titel: { regio: 'center', klasse: 'titel', html: esc(titel), delay: 0.8 } }, direct);
       },
     },
   ]);

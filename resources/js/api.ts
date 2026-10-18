@@ -19,6 +19,7 @@ export interface VraagDef {
   id: string;
   type: 'open' | 'keuze' | 'getal' | 'schuif' | 'stelling' | 'herstemming';
   stellingen?: string[];
+  stellingTeksten?: Record<string, string>;
   tekst?: string;
   stelling?: string;
   opties?: string[];

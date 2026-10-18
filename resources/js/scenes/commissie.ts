@@ -38,7 +38,7 @@ function dossier(id: string): Dossier {
 }
 
 /** Wie bij voltooid leven 'eigen keuze' zei, maar Lhermitte geen euthanasie gunde. */
-const tegenspraakNamen = klas.filter((l) => antwoord(l, 's5') === 1 && antwoord(l, 's4') === 2).map((l) => l.naam);
+const tegenspraakNamenVan = () => klas.filter((l) => antwoord(l, 's5') === 1 && antwoord(l, 's4') === 2).map((l) => l.naam);
 
 /**
  * De commissie. `ids` zijn de dossiers die in dit deel aan bod komen (de les splitst ze rond de pauze);
@@ -287,7 +287,7 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
     const { W, H } = ctx.stage;
     const beeld = sterrenbeelden(W, H, d.stelling);
     const duel = sub === 'duel' ? d.duel : null;
-    const flikkeraars = sub === 'tegenspraak' ? tegenspraakNamen : [];
+    const flikkeraars = sub === 'tegenspraak' ? tegenspraakNamenVan() : [];
 
     const sterren: Record<string, SterDoel> = {};
     klas.forEach((l, i) => {
@@ -409,7 +409,7 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
         if (tg) notities.push(`${l.naam} staat bij ${CODE_NAAM[tg.bedoeld]}: ${tg.uitleg}`);
         if (l.opgelet && s === 's5') notities.push(`${l.naam}: ${l.opgelet}`);
       }
-      if (t.sub === 'tegenspraak') notities.push(`Flikkeren: ${tegenspraakNamen.join(', ')}.`);
+      if (t.sub === 'tegenspraak') notities.push(`Flikkeren: ${tegenspraakNamenVan().join(', ')}.`);
       if (t.sub === 'gsm') notities.push(`${live.antwoorden.length} van ${live.deelnemers.length} stemden.`);
       if (t.sub === 'staan') {
         const status = { uit: 'uit', laden: 'wordt gestart', aan: `aan, ziet nu ${teller.ruw.join(' / ')}`, fout: 'niet beschikbaar' }[teller.status];

@@ -1,5 +1,4 @@
 import { api, VraagDef } from './api';
-import { stellingen, StellingId } from './data';
 
 type Waarde = string | number | Record<string, number>;
 
@@ -70,7 +69,8 @@ async function verstuur(vraag: VraagDef, waarde: Waarde) {
 /** Alle stellingen onder elkaar, elk met drie knoppen. Versturen kan pas als alles ingevuld is. */
 function herstemmingScherm(vraag: VraagDef, vorig: Record<string, number> | null) {
   const keuzes: Record<string, number> = { ...(vorig ?? {}) };
-  const ids = (vraag.stellingen ?? []) as StellingId[];
+  const ids = vraag.stellingen ?? [];
+  const stellingen = vraag.stellingTeksten ?? {};
   toon(`
     <p class="vraag">${esc(vraag.tekst ?? '')}</p>
     ${ids
@@ -110,7 +110,7 @@ function eindeScherm() {
 
 function vraagScherm(vraag: VraagDef, vorig: Waarde | null) {
   if (vraag.type === 'herstemming') return herstemmingScherm(vraag, vorig as Record<string, number> | null);
-  const titel = vraag.type === 'stelling' ? stellingen[vraag.stelling as StellingId] : vraag.tekst ?? '';
+  const titel = vraag.tekst ?? '';
   let invoer = '';
   if (vraag.type === 'open') {
     invoer = `<form id="form"><textarea id="waarde" maxlength="${vraag.maxLengte ?? 80}" rows="3" required>${esc(String(vorig ?? ''))}</textarea><button>Verstuur</button></form>`;

@@ -1,6 +1,5 @@
-import vragenJson from '../../data/vragen.json';
 import { Antwoord, api, VraagDef } from './api';
-import { Code, CODE_NAAM, klas, stellingen, StellingId } from './data';
+import { Code, CODE_NAAM, klas, laadInhoud, stellingen, StellingId, vragen } from './data';
 
 interface BeamerStand {
   nummer: number;
@@ -22,11 +21,9 @@ interface Deelnemer {
   naam: string;
 }
 
-const vragen = vragenJson.vragen as unknown as VraagDef[];
-
 function vraagVoor(id: string): VraagDef | null {
   if (/^s[1-6]$/.test(id)) return { id, type: 'stelling', stelling: id };
-  return vragen.find((v) => v.id === id) ?? null;
+  return vragen[id] ?? null;
 }
 
 function titelVan(vraag: VraagDef): string {
@@ -347,5 +344,9 @@ document.getElementById('wisDeelnemers')!.addEventListener('click', async () => 
   ververs();
 });
 
-ververs();
-window.setInterval(ververs, 1500);
+laadInhoud()
+  .catch(() => meld('Kon de inhoud niet laden. Herlaad de pagina.'))
+  .finally(() => {
+    ververs();
+    window.setInterval(ververs, 1500);
+  });

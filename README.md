@@ -10,6 +10,8 @@ npm install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate
+php artisan db:seed --class=InhoudSeeder
+php artisan make:filament-user
 npm run build
 herd link sterrenhemel
 herd secure sterrenhemel
@@ -27,10 +29,14 @@ Volgende en vorige alleen via het presentatorscherm (`/presentator`); pijltjes e
 
 ## Inhoud aanpassen
 
-- `data/klas.json`: antwoorden en citaten van de klas
-- `data/dossiers.json`: de vier commissiedossiers
-- `data/vragen.json`: vragen voor de gsm's
-- `data/theorie.json`: theoriekaarten (punten onder "aanvullen" moeten nog ingevuld worden)
+Via het beheerplatform op `/admin` (log in met het account uit `make:filament-user`):
+
+- **Lesverloop**: de scènes van de les, sleep ze in de juiste volgorde, zet ze aan of uit
+- **Theoriekaarten**, **Gsm-vragen**, **Dossiers**, **Klas** en **Stellingen**
+
+Herlaad de beamer na een wijziging. Wie ingelogd is in het beheer, kan ook meteen de beamer en het presentatorscherm openen.
+
+`InhoudSeeder` zet de startinhoud uit `data/*.json` in de database. Voer hem alleen de eerste keer uit: hij overschrijft alles wat in het beheer aangepast is.
 
 ## Online zetten
 

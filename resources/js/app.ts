@@ -1,21 +1,36 @@
 import gsap from 'gsap';
 import { api } from './api';
-import { dossiers, klas } from './data';
+import { dossiers, kaarten, klas, laadInhoud, les, LesStap, vragen } from './data';
 import { wisCache } from './layout';
 import { esc, Overlay } from './overlay';
-import { Machine } from './scene';
+import { Ctx, lineair, Machine, Scene } from './scene';
 import { Live, MAX_GSM } from './live';
 import { commissie, dossierSleutel, MAX_STAAN, staanSleutel } from './scenes/commissie';
 import { aanmelden, getallenlijn, openVraag, pauze, quiz } from './scenes/gsm';
 import { jullieHemel, leeg, MIDDEN } from './scenes/opening';
-import { abortusSterrenbeelden, afsluiter, herstemming, mensen } from './scenes/slot';
+import { afsluiter, herstemming, mensen, sterrenbeeld } from './scenes/slot';
 import { theorie } from './scenes/theorie';
 import { Stage } from './stage';
 import { Teller } from './teller';
+import type { CommissieScene } from './scenes/commissie';
+
+/** Zichtbare melding in plaats van een scène die naar iets verwijst dat niet (meer) bestaat in het beheer. */
+function ontbrekend(ctx: Ctx, wat: string): Scene {
+  return lineair(`Ontbreekt: ${wat}`, [
+    {
+      label: `Ontbreekt in het beheer: ${wat}`,
+      render: ({ direct }) => {
+        ctx.stage.toon({ achtergrond: 0.6, sterren: {} }, direct);
+        ctx.overlay.toon({ melding: { regio: 'bottom', klasse: 'melding', html: `Deze stap verwijst naar iets dat niet bestaat: ${esc(wat)}` } }, direct);
+      },
+    },
+  ]);
+}
 
 async function start() {
   // Labels worden gemeten voor de plaatsing, dus eerst moeten de lettertypes geladen zijn.
   await document.fonts.ready;
+  await laadInhoud();
 
   const stage = new Stage(document.getElementById('hemel') as HTMLCanvasElement, document.getElementById('labels')!, [
     { sleutel: MIDDEN },
@@ -29,34 +44,61 @@ async function start() {
   const overlay = new Overlay();
   const ctx = { stage, overlay };
 
-  // De volgorde van de les (2 uur, met één pauze).
-  const commissie1 = commissie(ctx, teller, live, ['trauma', 'misdaad']);
-  const commissie2 = commissie(ctx, teller, live, ['voltooid', 'dementie'], () => commissie1.besproken());
-  const machine = new Machine([
-    leeg(ctx),
-    aanmelden(ctx, live),
-    openVraag(ctx, live, 'betekenis'),
-    theorie(ctx, 'kader'),
-    jullieHemel(ctx),
-    theorie(ctx, 'wet'),
-    quiz(ctx, live, 'Waar of niet waar: de wet', ['wet-terminaal', 'wet-psychisch', 'wet-dementie', 'wet-familie', 'wet-kinderen', 'wet-belg']),
-    theorie(ctx, 'uitvoering'),
-    commissie1,
-    pauze(ctx, live, 10),
-    theorie(ctx, 'ethiek'),
-    openVraag(ctx, live, 'voltooid'),
-    commissie2,
-    getallenlijn(ctx, live, 'cijfer-2022'),
-    mensen(ctx),
-    getallenlijn(ctx, live, 'cijfer-70'),
-    theorie(ctx, 'cijfers'),
-    theorie(ctx, 'afbakening'),
-    getallenlijn(ctx, live, 'abortus-weken'),
-    theorie(ctx, 'abortus'),
-    abortusSterrenbeelden(ctx),
-    herstemming(ctx, live),
-    afsluiter(ctx, live),
-  ]);
+  // De volgorde van de les komt uit het beheerplatform (Lesverloop).
+  const commissies: CommissieScene[] = [];
+  const tekst = (stap: LesStap, sleutel: string) => String(stap.instellingen?.[sleutel] ?? '');
+  const lijst = (stap: LesStap, sleutel: string) => (stap.instellingen?.[sleutel] as string[] | undefined) ?? [];
+
+  function maakScene(stap: LesStap): Scene {
+    switch (stap.type) {
+      case 'titel':
+        return leeg(ctx, tekst(stap, 'titel'));
+      case 'aanmelden':
+        return aanmelden(ctx, live);
+      case 'openVraag':
+      case 'getallenlijn': {
+        const id = tekst(stap, 'vraag');
+        if (!vragen[id]) return ontbrekend(ctx, `vraag "${id}"`);
+        return stap.type === 'openVraag' ? openVraag(ctx, live, id) : getallenlijn(ctx, live, id);
+      }
+      case 'theorie': {
+        const id = tekst(stap, 'kaart');
+        return kaarten.some((k) => k.id === id) ? theorie(ctx, id) : ontbrekend(ctx, `theoriekaart "${id}"`);
+      }
+      case 'jullieHemel':
+        return jullieHemel(ctx);
+      case 'quiz': {
+        const ids = lijst(stap, 'vragen').filter((id) => vragen[id]);
+        return ids.length ? quiz(ctx, live, tekst(stap, 'naam') || 'Quiz', ids) : ontbrekend(ctx, 'quizvragen');
+      }
+      case 'commissie': {
+        const ids = lijst(stap, 'dossiers').filter((id) => dossiers.some((d) => d.id === id));
+        if (!ids.length) return ontbrekend(ctx, 'dossiers');
+        // Dossiers uit een vorig commissiedeel blijven goud in het overzicht.
+        const vorige = [...commissies];
+        const scene = commissie(ctx, teller, live, ids, () => new Set(vorige.flatMap((c) => [...c.besproken()])));
+        commissies.push(scene);
+        return scene;
+      }
+      case 'pauze':
+        return pauze(ctx, live, Number(stap.instellingen?.minuten ?? 10));
+      case 'mensen':
+        return mensen(ctx, Number(stap.instellingen?.aantal ?? 3000), tekst(stap, 'tekst'), tekst(stap, 'bron'));
+      case 'sterrenbeeld': {
+        const namen = [tekst(stap, 'links'), ...lijst(stap, 'rechts')];
+        if (namen.some((n) => !klas.some((l) => l.naam === n))) return ontbrekend(ctx, 'leerling in het duel');
+        return sterrenbeeld(ctx, tekst(stap, 'stelling') as Parameters<typeof sterrenbeeld>[1], tekst(stap, 'links'), lijst(stap, 'rechts'));
+      }
+      case 'herstemming':
+        return herstemming(ctx, live);
+      case 'afsluiter':
+        return afsluiter(ctx, live);
+      default:
+        return ontbrekend(ctx, `scènetype "${stap.type}"`);
+    }
+  }
+
+  const machine = new Machine(les.length ? les.map(maakScene) : [leeg(ctx, 'Nog geen lesverloop in het beheer')]);
 
   teller.luister(() => machine.onWissel());
   live.luister(() => machine.onWissel());

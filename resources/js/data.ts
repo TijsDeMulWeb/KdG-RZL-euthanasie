@@ -1,5 +1,4 @@
-import klasJson from '../../data/klas.json';
-import dossiersJson from '../../data/dossiers.json';
+import { api, VraagDef } from './api';
 
 export type StellingId = 's1' | 's2' | 's3' | 's4' | 's5' | 's6';
 export type Code = 1 | 2 | 3;
@@ -25,9 +24,45 @@ export interface Dossier {
   tegenspraak?: boolean;
 }
 
-export const stellingen = klasJson.stellingen as Record<StellingId, string>;
-export const klas = klasJson.klas as unknown as Leerling[];
-export const dossiers = dossiersJson.dossiers as unknown as Dossier[];
+export interface Kaart {
+  id: string;
+  titel: string;
+  punten: string[];
+  bron: string;
+  aanvullen: string[];
+}
+
+export interface LesStap {
+  type: string;
+  instellingen: Record<string, unknown> | null;
+}
+
+interface Inhoud {
+  stellingen: Record<StellingId, string>;
+  klas: Leerling[];
+  dossiers: Dossier[];
+  vragen: VraagDef[];
+  kaarten: Kaart[];
+  les: LesStap[];
+}
+
+// De inhoud komt uit het beheerplatform (database). `laadInhoud` vult deze bindingen bij het opstarten.
+export let stellingen = {} as Record<StellingId, string>;
+export let klas: Leerling[] = [];
+export let dossiers: Dossier[] = [];
+export let vragen: Record<string, VraagDef> = {};
+export let kaarten: Kaart[] = [];
+export let les: LesStap[] = [];
+
+export async function laadInhoud(): Promise<void> {
+  const inhoud = await api<Inhoud>('GET', '/presentator/inhoud');
+  stellingen = inhoud.stellingen;
+  klas = inhoud.klas;
+  dossiers = inhoud.dossiers;
+  vragen = Object.fromEntries(inhoud.vragen.map((v) => [v.id, v]));
+  kaarten = inhoud.kaarten;
+  les = inhoud.les;
+}
 
 export const STELLING_NR: Record<StellingId, number> = { s1: 1, s2: 2, s3: 3, s4: 4, s5: 5, s6: 6 };
 

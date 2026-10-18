@@ -1,16 +1,10 @@
 import QRCode from 'qrcode';
-import { VraagDef } from '../api';
-import vragenJson from '../../../data/vragen.json';
+import { vragen } from '../data';
 import { kolommen, maten, vrijePlek } from '../layout';
 import { Live } from '../live';
 import { esc, Vak } from '../overlay';
 import { Ctx, Hulp, Scene } from '../scene';
 import { SterDoel } from '../stage';
-
-export const vragen = (vragenJson.vragen as unknown as VraagDef[]).reduce<Record<string, VraagDef>>((alle, v) => {
-  alle[v.id] = v;
-  return alle;
-}, {});
 
 export interface LiveStap {
   label: string;

@@ -3,7 +3,7 @@ import { hemel, HEMEL_MARGE, Pt, sterrenbeelden, vrijeY } from '../layout';
 import { Live } from '../live';
 import { esc, Vak } from '../overlay';
 import { Ctx, lineair, Scene } from '../scene';
-import { SterDoel } from '../stage';
+import { MAX_MENSEN, SterDoel } from '../stage';
 import { liveScene } from './gsm';
 import { asLabels, klasInHemel, MIDDEN } from './opening';
 
@@ -173,25 +173,23 @@ export function afsluiter(ctx: Ctx, live: Live): Scene {
 
 // ---------- elk lichtje een mens ----------
 
-export function mensen(ctx: Ctx): Scene {
-  const AANTAL = 3000;
+export function mensen(ctx: Ctx, aantal: number, zin: string, bron = ''): Scene {
+  const AANTAL = Math.min(Math.max(1, aantal), MAX_MENSEN);
   const DUUR = 12;
+  const nf = new Intl.NumberFormat('nl-BE');
   let teller = 0;
-  return lineair('Zo’n 3.000 mensen', [
+  return lineair(`${nf.format(AANTAL)} sterren`, [
     {
-      label: 'De hemel vult zich met 3.000 sterren',
-      notities: ['Bron: "Zo\'n 3.000 mensen" in 2022, VRT NWS februari 2023 (p. 14). Het is een afgerond getal.'],
+      label: `De hemel vult zich met ${nf.format(AANTAL)} sterren`,
+      notities: bron ? [`Bron: ${bron}`] : [],
       render: ({ direct }) => {
         ctx.stage.toon({ achtergrond: 0.5, sterren: klasInHemel(ctx, { alpha: 0.9, label: 0.6 }), mensen: AANTAL, mensenDuur: DUUR, duur: 1.6 }, direct);
-        ctx.overlay.toon(
-          {
-            getal: { regio: 'top', klasse: 'mensen-teller', html: '<span id="mensenteller">0</span>' },
-            zin: { regio: 'bottom', klasse: 'uitleg', html: 'Zo’n 3.000 mensen kregen in 2022 euthanasie in België. Elk lichtje is een mens.', delay: DUUR - 2 },
-          },
-          direct,
-        );
+        const vakken: Record<string, Vak> = {
+          getal: { regio: 'top', klasse: 'mensen-teller', html: '<span id="mensenteller">0</span>' },
+        };
+        if (zin) vakken.zin = { regio: 'bottom', klasse: 'uitleg', html: esc(zin), delay: DUUR - 2 };
+        ctx.overlay.toon(vakken, direct);
         clearInterval(teller);
-        const nf = new Intl.NumberFormat('nl-BE');
         const tik = () => {
           const el = document.getElementById('mensenteller');
           if (!el) return clearInterval(teller);
@@ -205,10 +203,8 @@ export function mensen(ctx: Ctx): Scene {
 
 // ---------- abortus: sterrenbeelden en duel ----------
 
-export function abortusSterrenbeelden(ctx: Ctx): Scene {
-  const s: StellingId = 's6';
-  const links = 'Wout';
-  const rechts = ['Romy', 'Franka'];
+/** Sterrenbeelden van één stelling met een duel: één leerling links tegenover een of meer rechts. */
+export function sterrenbeeld(ctx: Ctx, s: StellingId, links: string, rechts: string[]): Scene {
   let selectie: { naam: string; open: boolean } | null = null;
   let stap = 0;
 
@@ -270,9 +266,9 @@ export function abortusSterrenbeelden(ctx: Ctx): Scene {
   }
 
   return lineair(
-    'Abortus: sterrenbeelden',
+    `Sterrenbeelden stelling ${s.slice(1)}`,
     [
-      { label: 'Sterrenbeelden stelling 6, klik op een ster voor het citaat', render: ({ direct }) => ((stap = 0), (selectie = null), render(false, direct)) },
+      { label: `Sterrenbeelden stelling ${s.slice(1)}, klik op een ster voor het citaat`, render: ({ direct }) => ((stap = 0), (selectie = null), render(false, direct)) },
       { label: `Duel: ${links} tegenover ${rechts.join(' en ')}`, render: ({ direct }) => ((stap = 1), (selectie = null), render(true, direct)) },
     ],
     {

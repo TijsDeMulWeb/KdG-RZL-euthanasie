@@ -1,17 +1,7 @@
-import theorieJson from '../../../data/theorie.json';
+import { kaarten } from '../data';
 import { esc, Vak } from '../overlay';
 import { Ctx, lineair, Scene } from '../scene';
 import { klasInHemel } from './opening';
-
-interface Kaart {
-  id: string;
-  titel: string;
-  punten: string[];
-  bron: string;
-  aanvullen: string[];
-}
-
-const kaarten = theorieJson.kaarten as Kaart[];
 
 /** Een theoriekaart: de hemel dimt en per klik komt er een punt bij. */
 export function theorie(ctx: Ctx, id: string): Scene {

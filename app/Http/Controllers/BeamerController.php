@@ -10,7 +10,7 @@ class BeamerController extends Controller
 {
     public function __invoke(Request $request): View|RedirectResponse
     {
-        if (! $request->session()->get('presentator')) {
+        if (! $request->user() && ! $request->session()->get('presentator')) {
             return redirect()->route('deelnemers.create');
         }
 

@@ -2,26 +2,34 @@
 
 namespace App\Support;
 
-use Illuminate\Support\Collection;
+use App\Models\Stelling;
+use App\Models\Vraag;
 
 class Vragen
 {
-    /** @return Collection<string, array<string, mixed>> */
-    public static function alle(): Collection
-    {
-        $vragen = json_decode(file_get_contents(base_path('data/vragen.json')), true)['vragen'];
-
-        return collect($vragen)->keyBy('id');
-    }
-
     /** @return ?array<string, mixed> */
     public static function vind(string $id): ?array
     {
-        if (preg_match('/^s[1-6]$/', $id)) {
-            return ['id' => $id, 'type' => 'stelling', 'stelling' => $id];
+        $stelling = Stelling::firstWhere('code', $id);
+
+        if ($stelling) {
+            return ['id' => $id, 'type' => 'stelling', 'stelling' => $id, 'tekst' => $stelling->tekst];
         }
 
-        return static::alle()->get($id);
+        $vraag = Vraag::firstWhere('sleutel', $id)?->naarFrontend();
+
+        if (! $vraag) {
+            return null;
+        }
+
+        if ($vraag['type'] === 'herstemming') {
+            $vraag['stellingTeksten'] = Stelling::query()
+                ->whereIn('code', $vraag['stellingen'] ?? [])
+                ->pluck('tekst', 'code')
+                ->all();
+        }
+
+        return $vraag;
     }
 
     /** @return array<string, array<int, mixed>> */

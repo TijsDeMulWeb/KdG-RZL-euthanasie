@@ -10,6 +10,10 @@ class EnsurePresentator
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->user()) {
+            return $next($request);
+        }
+
         if (! $request->session()->get('presentator')) {
             abort(403, 'Alleen voor de presentatoren.');
         }
