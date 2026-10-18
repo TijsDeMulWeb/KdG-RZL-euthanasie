@@ -109,15 +109,20 @@ async function start() {
   }
 
   let laatsteOpdracht: number | null = null;
+  let opdrachtenBezig = false;
   async function volgOpdrachten() {
+    // Nooit twee peilingen tegelijk: op trage wifi zou dezelfde klik anders twee keer uitgevoerd worden.
+    if (opdrachtenBezig) return;
+    opdrachtenBezig = true;
     try {
-      const opdrachten = await api<{ id: number; soort: string; scene?: number; antwoord?: number | null; zone?: number; stap?: number }[]>('GET', `/presentator/opdrachten?na=${laatsteOpdracht ?? 0}`);
+      const opdrachten = await api<{ id: number; soort: string; scene?: number; antwoord?: number | null; zone?: number; stap?: number; aan?: boolean }[]>('GET', `/presentator/opdrachten?na=${laatsteOpdracht ?? 0}`);
       // Bij het laden van de pagina alleen onthouden waar we zitten, oude opdrachten niet uitvoeren.
       if (laatsteOpdracht === null) {
         laatsteOpdracht = Math.max(0, ...opdrachten.map((o) => o.id));
         return;
       }
       for (const o of opdrachten) {
+        if (o.id <= laatsteOpdracht) continue;
         laatsteOpdracht = o.id;
         if (o.soort === 'zwart') zetZwart(!isZwart);
         // Bij een zwart scherm brengt de eerste klik eerst het beeld terug.
@@ -126,7 +131,10 @@ async function start() {
         else if (o.soort === 'vorige') machine.prev();
         else if (o.soort === 'scene' && o.scene !== undefined) machine.ga(o.scene);
         else if (o.soort === 'telling' && o.zone !== undefined && o.stap !== undefined) machine.huidige.corrigeerTelling?.(o.zone, o.stap);
-        else if (o.soort === 'spiegel') {
+        else if (o.soort === 'vergrendel') {
+          machine.huidige.vergrendelTelling?.(!!o.aan);
+          machine.onWissel();
+        } else if (o.soort === 'spiegel') {
           machine.huidige.wisselSpiegel?.();
           machine.onWissel();
         } else if (o.soort === 'toon') {
@@ -136,6 +144,8 @@ async function start() {
       }
     } catch {
       // Volgende ronde opnieuw.
+    } finally {
+      opdrachtenBezig = false;
     }
   }
   window.setInterval(volgOpdrachten, 600);

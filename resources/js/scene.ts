@@ -27,6 +27,8 @@ export interface Scene {
   /** Stand van de cameratelling als die in deze stap loopt, anders null. */
   cameraStand?(): CameraStand | null;
   corrigeerTelling?(zone: number, stap: number): void;
+  /** Zet de telling vast (de camera stopt) of geeft ze weer vrij. */
+  vergrendelTelling?(aan: boolean): void;
   wisselSpiegel?(): void;
   hulp(): Hulp;
 }
@@ -39,6 +41,7 @@ export interface CameraStand {
   ruw: number[];
   correctie: number[];
   spiegel: boolean;
+  vast: boolean;
 }
 
 export interface Ctx {

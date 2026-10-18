@@ -12,7 +12,7 @@ interface BeamerStand {
   zwart: boolean;
   bekijk: string | null;
   getoond: number | null;
-  camera: { status: string; zones: number[]; ruw: number[]; correctie: number[]; spiegel: boolean } | null;
+  camera: { status: string; zones: number[]; ruw: number[]; correctie: number[]; spiegel: boolean; vast: boolean } | null;
   tijd: number;
 }
 
@@ -144,16 +144,22 @@ function zetCamera(camera: NonNullable<BeamerStand['camera']>) {
           </div>`,
         )
         .join('')}</div>
+      <button class="vastzetten" data-vergrendel></button>
       <button class="spiegel" data-spiegel>Links en rechts omwisselen</button>`;
   }
   const veld = (naam: string) => el.camera.querySelector<HTMLElement>(`[data-veld="${naam}"]`)!;
-  const werkt = camera.status === 'aan';
-  veld('stip').className = `stip ${werkt ? 'aan' : camera.status === 'fout' ? 'fout' : ''}`;
-  veld('status').textContent = STATUS[camera.status] ?? camera.status;
+  const werkt = camera.status === 'aan' && !camera.vast;
+  veld('stip').className = `stip ${werkt ? 'aan' : camera.status === 'fout' && !camera.vast ? 'fout' : ''}`;
+  veld('status').textContent = camera.vast ? 'Telling staat vast' : STATUS[camera.status] ?? camera.status;
+  el.camera.classList.toggle('is-vast', camera.vast);
+  el.camera.querySelectorAll<HTMLButtonElement>('[data-zone], [data-spiegel]').forEach((knop) => (knop.disabled = camera.vast));
+  const vergrendel = el.camera.querySelector<HTMLButtonElement>('[data-vergrendel]')!;
+  vergrendel.dataset.vergrendel = camera.vast ? 'los' : 'vast';
+  vergrendel.textContent = camera.vast ? 'Telling vrijgeven' : 'Telling vastzetten';
   kanten.forEach((_, z) => {
     veld(`zone${z}`).textContent = String(camera.zones[z]);
     const correctie = camera.correctie[z] ? ` · ${camera.correctie[z] > 0 ? '+' : ''}${camera.correctie[z]}` : '';
-    veld(`ruw${z}`).textContent = `${werkt ? `ziet ${camera.ruw[z]}` : 'zelf geteld'}${correctie}`;
+    veld(`ruw${z}`).textContent = camera.vast ? 'vast' : `${werkt ? `ziet ${camera.ruw[z]}` : 'zelf geteld'}${correctie}`;
   });
 }
 
@@ -252,7 +258,8 @@ el.zwart.addEventListener('click', () => stuur('zwart'));
 el.camera.addEventListener('click', (event) => {
   const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('button');
   if (!knop) return;
-  if (knop.dataset.spiegel !== undefined) stuurOpdracht({ soort: 'spiegel' });
+  if (knop.dataset.vergrendel) stuurOpdracht({ soort: 'vergrendel', aan: knop.dataset.vergrendel === 'vast' });
+  else if (knop.dataset.spiegel !== undefined) stuurOpdracht({ soort: 'spiegel' });
   else stuurOpdracht({ soort: 'telling', zone: Number(knop.dataset.zone), stap: Number(knop.dataset.stap) });
 });
 el.antwoorden.addEventListener('click', (event) => {

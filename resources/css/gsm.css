@@ -574,3 +574,27 @@ button.spiegel {
     font-weight: 500;
     color: var(--zacht);
 }
+
+button.vastzetten {
+    width: 100%;
+    margin-top: 12px;
+    padding: 16px;
+    border-color: transparent;
+    background: var(--goud);
+    color: #1a1408;
+    font-size: 17px;
+}
+
+.camera.is-vast button.vastzetten {
+    border-color: var(--rand);
+    background: var(--vlak);
+    color: var(--wit);
+}
+
+.camera.is-vast .zone-getal {
+    color: var(--wit);
+}
+
+button:disabled {
+    opacity: 0.35;
+}
