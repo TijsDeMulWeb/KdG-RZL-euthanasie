@@ -23,7 +23,7 @@ Zet een eigen `PRESENTATOR_CODE` in `.env`.
 
 ## Bediening
 
-← → of PgUp/PgDn (clicker), F volledig scherm, B zwart scherm, H hulpvenster met de scènelijst. Bij de staande stemming: 1, 2, 3 telt een persoon bij (Shift trekt er een af), M spiegelt links en rechts.
+Volgende en vorige alleen via het presentatorscherm (`/presentator`); pijltjes en clicker doen niets op de beamer. F volledig scherm, B zwart scherm, H hulpvenster met de scènelijst. Bij de staande stemming: 1, 2, 3 telt een persoon bij (Shift trekt er een af), M spiegelt links en rechts.
 
 ## Inhoud aanpassen
 

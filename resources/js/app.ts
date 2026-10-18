@@ -73,7 +73,7 @@ async function start() {
       <p><b>Nu:</b> ${esc(h.stap)}</p>
       <p><b>→</b> ${esc(h.volgende === 'volgende scène' ? `scène: ${machine.volgendeScene?.naam ?? 'einde'}` : h.volgende)}</p>
       ${(h.notities ?? []).map((n) => `<p class="notitie">${esc(n)}</p>`).join('')}
-      <p class="toetsen">← → / PgUp PgDn · F volledig scherm · B zwart · H hulp</p>
+      <p class="toetsen">Bediening via /presentator · F volledig scherm · B zwart · H hulp</p>
       <details class="scenes"><summary>Naar scène…</summary>${machine.namen
         .map((n, i) => `<button data-scene="${i}" class="${i + 1 === machine.nummer ? 'actief' : ''}">${i + 1}. ${esc(n)}</button>`)
         .join('')}</details>`;
@@ -149,19 +149,7 @@ async function start() {
       return;
     }
     switch (event.key) {
-      case 'ArrowRight':
-      case 'PageDown':
-      case ' ':
-        event.preventDefault();
-        if (isZwart) zetZwart(false);
-        else machine.next();
-        break;
-      case 'ArrowLeft':
-      case 'PageUp':
-        event.preventDefault();
-        if (isZwart) zetZwart(false);
-        else machine.prev();
-        break;
+      // Volgende en vorige gaan bewust alleen via het presentatorscherm, niet via toetsen op de beamer.
       case 'f':
       case 'F':
         if (document.fullscreenElement) document.exitFullscreen();
