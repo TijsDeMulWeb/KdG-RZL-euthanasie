@@ -24,7 +24,21 @@ export interface Scene {
   /** Toont een antwoord van een gsm groot op de beamer (null = verbergen), op vraag van het presentatorscherm. */
   toonAntwoord?(id: number | null): void;
   getoondAntwoord?(): number | null;
+  /** Stand van de cameratelling als die in deze stap loopt, anders null. */
+  cameraStand?(): CameraStand | null;
+  corrigeerTelling?(zone: number, stap: number): void;
+  wisselSpiegel?(): void;
   hulp(): Hulp;
+}
+
+export interface CameraStand {
+  status: string;
+  /** Wat de telling nu toont, per kant (eens, twijfel, oneens). */
+  zones: number[];
+  /** Wat de camera op dit moment ziet, zonder correctie of uitmiddeling. */
+  ruw: number[];
+  correctie: number[];
+  spiegel: boolean;
 }
 
 export interface Ctx {

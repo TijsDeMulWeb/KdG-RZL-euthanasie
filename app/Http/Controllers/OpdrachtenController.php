@@ -22,7 +22,9 @@ class OpdrachtenController extends Controller
     public function store(Request $request): JsonResponse
     {
         $opdracht = $request->validate([
-            'soort' => ['required', 'in:volgende,vorige,zwart,scene,toon'],
+            'soort' => ['required', 'in:volgende,vorige,zwart,scene,toon,telling,spiegel'],
+            'zone' => ['nullable', 'integer', 'in:0,1,2'],
+            'stap' => ['nullable', 'integer', 'in:-1,1'],
             'scene' => ['nullable', 'integer'],
             'antwoord' => ['nullable', 'integer'],
         ]);

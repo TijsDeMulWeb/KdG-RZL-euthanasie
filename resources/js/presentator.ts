@@ -12,6 +12,7 @@ interface BeamerStand {
   zwart: boolean;
   bekijk: string | null;
   getoond: number | null;
+  camera: { status: string; zones: number[]; ruw: number[]; correctie: number[]; spiegel: boolean } | null;
   tijd: number;
 }
 
@@ -43,6 +44,7 @@ const el = {
   volgende: document.getElementById('volgende')!,
   notities: document.getElementById('notities')!,
   antwoorden: document.getElementById('antwoorden')!,
+  camera: document.getElementById('camera')!,
   deelnemers: document.getElementById('deelnemers')!,
   scenes: document.getElementById('scenes')!,
   zwart: document.getElementById('zwart') as HTMLButtonElement,
@@ -114,6 +116,47 @@ function antwoordenHtml(vraag: VraagDef, antwoorden: Antwoord[], deelnemers: num
   return kop + inhoud + extra;
 }
 
+// ---------- camera ----------
+
+const STATUS: Record<string, string> = {
+  aan: 'Camera telt',
+  laden: 'Camera wordt gestart…',
+  uit: 'Camera staat uit',
+  fout: 'Camera werkt niet: tel zelf met + en −',
+};
+
+/**
+ * Het blok wordt één keer opgebouwd; daarna veranderen alleen de getallen en de status.
+ * Zo blijven de knoppen staan en gaat er geen tik verloren terwijl de telling elke seconde ververst.
+ */
+function zetCamera(camera: NonNullable<BeamerStand['camera']>) {
+  const kanten = ['Eens', 'Twijfel', 'Oneens'];
+  if (!el.camera.querySelector('.zones')) {
+    el.camera.innerHTML = `<div class="camera-kop"><span class="stip" data-veld="stip"></span><b data-veld="status"></b></div>
+      <p class="zacht">Eens links, twijfel midden, oneens rechts, gezien vanuit de klas.</p>
+      <div class="zones">${kanten
+        .map(
+          (kant, z) => `<div class="zone">
+            <span class="label">${kant}</span>
+            <span class="zone-getal" data-veld="zone${z}"></span>
+            <span class="zacht" data-veld="ruw${z}"></span>
+            <div class="plusmin"><button data-zone="${z}" data-stap="-1" aria-label="${kant} min één">−</button><button data-zone="${z}" data-stap="1" aria-label="${kant} plus één">+</button></div>
+          </div>`,
+        )
+        .join('')}</div>
+      <button class="spiegel" data-spiegel>Links en rechts omwisselen</button>`;
+  }
+  const veld = (naam: string) => el.camera.querySelector<HTMLElement>(`[data-veld="${naam}"]`)!;
+  const werkt = camera.status === 'aan';
+  veld('stip').className = `stip ${werkt ? 'aan' : camera.status === 'fout' ? 'fout' : ''}`;
+  veld('status').textContent = STATUS[camera.status] ?? camera.status;
+  kanten.forEach((_, z) => {
+    veld(`zone${z}`).textContent = String(camera.zones[z]);
+    const correctie = camera.correctie[z] ? ` · ${camera.correctie[z] > 0 ? '+' : ''}${camera.correctie[z]}` : '';
+    veld(`ruw${z}`).textContent = `${werkt ? `ziet ${camera.ruw[z]}` : 'zelf geteld'}${correctie}`;
+  });
+}
+
 // ---------- verversen ----------
 
 let stand: BeamerStand | null = null;
@@ -151,6 +194,9 @@ async function ververs() {
       zet(el.scene, 'Open de beamer op de laptop');
     }
 
+    if (stand?.camera) zetCamera(stand.camera);
+    el.camera.hidden = !stand?.camera;
+
     zet(el.antwoorden, vraag ? antwoordenHtml(vraag, antwoorden, deelnemers.length, actief.vraag?.id === vraag.id) : '');
     el.antwoorden.hidden = !vraag;
 
@@ -177,10 +223,14 @@ function meld(tekst: string) {
   meldingTimer = window.setTimeout(() => (melding.hidden = true), 6000);
 }
 
-async function stuur(soort: string, scene?: number, antwoord?: number | null) {
+function stuur(soort: string, scene?: number, antwoord?: number | null) {
+  return stuurOpdracht({ soort, scene, antwoord });
+}
+
+async function stuurOpdracht(opdracht: Record<string, unknown>) {
   navigator.vibrate?.(12);
   try {
-    await api('POST', '/presentator/opdrachten', { soort, scene, antwoord });
+    await api('POST', '/presentator/opdrachten', opdracht);
     if (!stand || Date.now() / 1000 - stand.tijd > 45) meld('Verstuurd, maar de beamer reageert niet. Staat hij open en zichtbaar op de laptop?');
   } catch (fout) {
     el.verbinding.className = 'stip fout';
@@ -199,6 +249,12 @@ async function stuur(soort: string, scene?: number, antwoord?: number | null) {
 document.getElementById('vorige')!.addEventListener('click', () => stuur('vorige'));
 document.getElementById('volgende-knop')!.addEventListener('click', () => stuur('volgende'));
 el.zwart.addEventListener('click', () => stuur('zwart'));
+el.camera.addEventListener('click', (event) => {
+  const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('button');
+  if (!knop) return;
+  if (knop.dataset.spiegel !== undefined) stuurOpdracht({ soort: 'spiegel' });
+  else stuurOpdracht({ soort: 'telling', zone: Number(knop.dataset.zone), stap: Number(knop.dataset.stap) });
+});
 el.antwoorden.addEventListener('click', (event) => {
   const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-toon]');
   if (!knop) return;

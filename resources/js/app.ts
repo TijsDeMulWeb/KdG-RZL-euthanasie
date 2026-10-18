@@ -97,6 +97,7 @@ async function start() {
         zwart: isZwart,
         bekijk: live.bekijk,
         getoond: machine.huidige.getoondAntwoord?.() ?? null,
+        camera: machine.huidige.cameraStand?.() ?? null,
       }).catch(() => {});
     }, 200);
   }
@@ -110,7 +111,7 @@ async function start() {
   let laatsteOpdracht: number | null = null;
   async function volgOpdrachten() {
     try {
-      const opdrachten = await api<{ id: number; soort: string; scene?: number; antwoord?: number | null }[]>('GET', `/presentator/opdrachten?na=${laatsteOpdracht ?? 0}`);
+      const opdrachten = await api<{ id: number; soort: string; scene?: number; antwoord?: number | null; zone?: number; stap?: number }[]>('GET', `/presentator/opdrachten?na=${laatsteOpdracht ?? 0}`);
       // Bij het laden van de pagina alleen onthouden waar we zitten, oude opdrachten niet uitvoeren.
       if (laatsteOpdracht === null) {
         laatsteOpdracht = Math.max(0, ...opdrachten.map((o) => o.id));
@@ -124,7 +125,11 @@ async function start() {
         else if (o.soort === 'volgende') machine.next();
         else if (o.soort === 'vorige') machine.prev();
         else if (o.soort === 'scene' && o.scene !== undefined) machine.ga(o.scene);
-        else if (o.soort === 'toon') {
+        else if (o.soort === 'telling' && o.zone !== undefined && o.stap !== undefined) machine.huidige.corrigeerTelling?.(o.zone, o.stap);
+        else if (o.soort === 'spiegel') {
+          machine.huidige.wisselSpiegel?.();
+          machine.onWissel();
+        } else if (o.soort === 'toon') {
           machine.huidige.toonAntwoord?.(o.antwoord ?? null);
           machine.onWissel();
         }
@@ -135,6 +140,10 @@ async function start() {
   }
   window.setInterval(volgOpdrachten, 600);
   window.setInterval(deelStand, 15000);
+  // Tijdens het tellen ziet het presentatorscherm elke seconde wat de camera ziet.
+  window.setInterval(() => {
+    if (machine.huidige.cameraStand?.()) deelStand();
+  }, 1000);
 
   hulp.addEventListener('click', (event) => {
     const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-scene]');

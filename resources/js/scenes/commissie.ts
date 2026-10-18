@@ -409,7 +409,7 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
       if (t.sub === 'gsm') notities.push(`${live.antwoorden.length} van ${live.deelnemers.length} stemden.`);
       if (t.sub === 'staan') {
         const status = { uit: 'uit', laden: 'wordt gestart', aan: `aan, ziet nu ${teller.ruw.join(' / ')}`, fout: 'niet beschikbaar' }[teller.status];
-        notities.push(`Camera ${status}. Toets 1, 2, 3 telt er een bij (eens, twijfel, oneens); met Shift eentje af. M spiegelt links en rechts.`);
+        notities.push(`Camera ${status}. Corrigeer met + en − in het camerablok.`);
       }
     }
     return { stap: beschrijf(t), volgende: beschrijf(volgendeToestand()), notities };
@@ -453,6 +453,18 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
       return true;
     },
     render,
+    cameraStand() {
+      const t = huidig();
+      if (t.soort !== 'dossier' || t.sub !== 'staan') return null;
+      return { status: teller.status, zones: [...teller.zones], ruw: [...teller.ruw], correctie: [...teller.correctie], spiegel: teller.spiegel };
+    },
+    corrigeerTelling(zone, stap) {
+      const t = huidig();
+      if (t.soort === 'dossier' && t.sub === 'staan') teller.corrigeer(zone, stap);
+    },
+    wisselSpiegel() {
+      teller.spiegel = !teller.spiegel;
+    },
     toets(event) {
       const t = huidig();
       if (t.soort !== 'dossier' || t.sub !== 'staan') return false;
