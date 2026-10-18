@@ -154,9 +154,21 @@ export function openVraag(ctx: Ctx, live: Live, id: string): Scene {
       vraag: { regio: 'top', klasse: 'vraag-titel', html: esc(vraag.tekst ?? '') },
       teller: { regio: 'top', klasse: 'telling', html: `${live.antwoorden.length} van ${live.deelnemers.length} antwoordden`, volgorde: 1 },
     };
-    if (antwoord) {
+    if (antwoord && gekozen) {
+      // Het antwoord verschijnt naast zijn eigen ster: rechts ervan, of links als de ster rechts op het scherm staat.
+      const { W, H } = ctx.stage;
+      const ster = vrijePlek(W, H, Number(gekozen.slice(4)));
+      const links = ster.x > W / 2;
+      const top = Math.min(Math.max(ster.y, H * 0.22), H * 0.78);
       const naam = metNaam ? `<span class="wie">${esc(antwoord.naam)}</span>` : '';
-      vakken.antwoord = { regio: 'bottom', klasse: 'citaat', html: `${naam}<q data-pas>${esc(String(antwoord.waarde))}</q>`, regels: 2, delay: 0 };
+      vakken.antwoord = {
+        regio: 'abs',
+        klasse: `ster-citaat ${links ? 'links' : 'rechts'}`,
+        html: `${naam}<q data-pas>${esc(String(antwoord.waarde))}</q>`,
+        stijl: links ? `right:${W - ster.x + 46}px;top:${top}px` : `left:${ster.x + 46}px;top:${top}px`,
+        regels: 3,
+        delay: 0.2,
+      };
     }
     ctx.overlay.toon(vakken, direct);
   }
