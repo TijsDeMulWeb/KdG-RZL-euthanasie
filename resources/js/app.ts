@@ -98,8 +98,9 @@ async function start() {
         bekijk: live.bekijk,
         getoond: machine.huidige.getoondAntwoord?.() ?? null,
         camera: machine.huidige.cameraStand?.() ?? null,
+        opdracht: laatsteOpdracht,
       }).catch(() => {});
-    }, 200);
+    }, 120);
   }
 
   function zetZwart(aan: boolean) {
@@ -115,7 +116,7 @@ async function start() {
     if (opdrachtenBezig) return;
     opdrachtenBezig = true;
     try {
-      const opdrachten = await api<{ id: number; soort: string; scene?: number; antwoord?: number | null; zone?: number; stap?: number; aan?: boolean }[]>('GET', `/presentator/opdrachten?na=${laatsteOpdracht ?? 0}`);
+      const opdrachten = await api<{ id: number; soort: string; scene?: number; antwoord?: number | null; zone?: number; stap?: number; aan?: boolean; metNaam?: boolean }[]>('GET', `/presentator/opdrachten?na=${laatsteOpdracht ?? 0}`);
       // Bij het laden van de pagina alleen onthouden waar we zitten, oude opdrachten niet uitvoeren.
       if (laatsteOpdracht === null) {
         laatsteOpdracht = Math.max(0, ...opdrachten.map((o) => o.id));
@@ -138,10 +139,12 @@ async function start() {
           machine.huidige.wisselSpiegel?.();
           machine.onWissel();
         } else if (o.soort === 'toon') {
-          machine.huidige.toonAntwoord?.(o.antwoord ?? null);
+          machine.huidige.toonAntwoord?.(o.antwoord ?? null, !!o.metNaam);
           machine.onWissel();
         }
       }
+      // Meteen laten weten welke opdracht uitgevoerd is, zodat het presentatorscherm kan bevestigen.
+      if (opdrachten.length) deelStand();
     } catch {
       // Volgende ronde opnieuw.
     } finally {

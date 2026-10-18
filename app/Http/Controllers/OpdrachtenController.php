@@ -24,6 +24,7 @@ class OpdrachtenController extends Controller
         $opdracht = $request->validate([
             'soort' => ['required', 'in:volgende,vorige,zwart,scene,toon,telling,spiegel,vergrendel'],
             'aan' => ['nullable', 'boolean'],
+            'metNaam' => ['nullable', 'boolean'],
             'zone' => ['nullable', 'integer', 'in:0,1,2'],
             'stap' => ['nullable', 'integer', 'in:-1,1'],
             'scene' => ['nullable', 'integer'],

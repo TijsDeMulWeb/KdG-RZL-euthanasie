@@ -26,6 +26,7 @@ class BeamerStandController extends Controller
             'bekijk' => ['nullable', 'string'],
             'getoond' => ['nullable', 'integer'],
             'camera' => ['nullable', 'array'],
+            'opdracht' => ['nullable', 'integer'],
         ]);
 
         Cache::put('beamer-stand', [...$stand, 'tijd' => now()->timestamp], now()->addHours(6));

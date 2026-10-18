@@ -22,7 +22,7 @@ export interface Scene {
   /** Opruimen bij het verlaten, bv. een vraag op de gsm's sluiten. */
   verlaat?(): void;
   /** Toont een antwoord van een gsm groot op de beamer (null = verbergen), op vraag van het presentatorscherm. */
-  toonAntwoord?(id: number | null): void;
+  toonAntwoord?(id: number | null, metNaam?: boolean): void;
   getoondAntwoord?(): number | null;
   /** Stand van de cameratelling als die in deze stap loopt, anders null. */
   cameraStand?(): CameraStand | null;

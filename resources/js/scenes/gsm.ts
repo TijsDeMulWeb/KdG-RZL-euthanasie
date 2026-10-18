@@ -33,7 +33,7 @@ export function liveScene(
   naam: string,
   live: Live,
   stappen: LiveStap[],
-  extra: { klik?(sleutel: string | null, stap: number): void; toonAntwoord?(id: number | null): void; getoondAntwoord?(): number | null } = {},
+  extra: { klik?(sleutel: string | null, stap: number): void; toonAntwoord?(id: number | null, metNaam?: boolean): void; getoondAntwoord?(): number | null } = {},
 ): Scene {
   let i = 0;
   let stopLuisteren: (() => void) | null = null;
@@ -145,6 +145,8 @@ export function openVraag(ctx: Ctx, live: Live, id: string): Scene {
   const vraag = vragen[id];
   const getoond = new Set<string>();
   let gekozen: string | null = null;
+  /** Alleen als de presentator daar bewust voor kiest, staat de naam bij het antwoord. */
+  let metNaam = false;
 
   function render(direct: boolean) {
     const sterren = gsmSterren(ctx, live, getoond, (sleutel) => {
@@ -158,7 +160,10 @@ export function openVraag(ctx: Ctx, live: Live, id: string): Scene {
       vraag: { regio: 'top', klasse: 'vraag-titel', html: esc(vraag.tekst ?? '') },
       teller: { regio: 'top', klasse: 'telling', html: `${live.antwoorden.length} van ${live.deelnemers.length} antwoordden`, volgorde: 1 },
     };
-    if (antwoord) vakken.antwoord = { regio: 'bottom', klasse: 'citaat', html: `<q data-pas>${esc(String(antwoord.waarde))}</q>`, regels: 2, delay: 0 };
+    if (antwoord) {
+      const naam = metNaam ? `<span class="wie">${esc(antwoord.naam)}</span>` : '';
+      vakken.antwoord = { regio: 'bottom', klasse: 'citaat', html: `${naam}<q data-pas>${esc(String(antwoord.waarde))}</q>`, regels: 2, delay: 0 };
+    }
     ctx.overlay.toon(vakken, direct);
   }
 
@@ -169,11 +174,13 @@ export function openVraag(ctx: Ctx, live: Live, id: string): Scene {
     {
       klik(sleutel) {
         gekozen = sleutel && sleutel.startsWith('gsm:') && sleutel !== gekozen && live.antwoordVan(sleutel) ? sleutel : null;
+        metNaam = false;
         render(false);
       },
-      toonAntwoord(id) {
+      toonAntwoord(id, naam = false) {
         const antwoord = live.antwoorden.find((a) => a.id === id);
         gekozen = antwoord ? live.sleutel(antwoord.deelnemer) : null;
+        metNaam = naam;
         render(false);
       },
       getoondAntwoord() {

@@ -12,6 +12,7 @@ interface BeamerStand {
   zwart: boolean;
   bekijk: string | null;
   getoond: number | null;
+  opdracht: number | null;
   camera: { status: string; zones: number[]; ruw: number[]; correctie: number[]; spiegel: boolean; vast: boolean } | null;
   tijd: number;
 }
@@ -80,7 +81,11 @@ function lijst(vraag: VraagDef, antwoorden: Antwoord[]): string {
     return antwoorden
       .map(
         (a) => `<li class="${a.id === getoond ? 'getoond' : ''}"><div class="rij"><b>${esc(a.naam)}</b>
-          <button class="toon" data-toon="${a.id === getoond ? '' : a.id}">${a.id === getoond ? 'Verberg' : 'Toon op beamer'}</button></div>
+          ${
+            a.id === getoond
+              ? '<button class="toon" data-toon="">Verberg</button>'
+              : `<span class="knoppen"><button class="toon" data-toon="${a.id}">Toon</button><button class="toon" data-toon="${a.id}" data-naam>Met naam</button></span>`
+          }</div>
           <span>${esc(String(a.waarde))}</span></li>`,
       )
       .join('');
@@ -222,23 +227,80 @@ async function ververs() {
 
 const melding = document.getElementById('melding')!;
 let meldingTimer = 0;
-function meld(tekst: string) {
+function meld(tekst: string, soort: 'fout' | 'ok' = 'fout') {
   melding.textContent = tekst;
+  melding.className = `melding ${soort}`;
   melding.hidden = false;
   clearTimeout(meldingTimer);
-  meldingTimer = window.setTimeout(() => (melding.hidden = true), 6000);
+  meldingTimer = window.setTimeout(() => (melding.hidden = true), soort === 'ok' ? 1600 : 6000);
 }
 
-function stuur(soort: string, scene?: number, antwoord?: number | null) {
-  return stuurOpdracht({ soort, scene, antwoord });
-}
+const UITGEVOERD: Record<string, string> = {
+  volgende: 'Volgende stap op de beamer',
+  vorige: 'Vorige stap op de beamer',
+  zwart: 'Zwart scherm gewisseld',
+  scene: 'Naar de scène gesprongen',
+  toon: 'Aangepast op de beamer',
+  telling: 'Telling aangepast',
+  spiegel: 'Links en rechts gewisseld',
+  vergrendel: 'Telling aangepast',
+};
 
-async function stuurOpdracht(opdracht: Record<string, unknown>) {
-  navigator.vibrate?.(12);
+/**
+ * Elke klik wacht tot de beamer bevestigt dat hij de opdracht uitvoerde.
+ * Tot dan staat de knop op 'bezig'; lukt het niet binnen 4 seconden, dan volgt een duidelijke melding.
+ */
+let wacht: { id: number; knop: HTMLElement | null; soort: string; sinds: number } | null = null;
+let snelPeilen = 0;
+
+async function controleerBevestiging() {
+  if (!wacht) return;
   try {
-    await api('POST', '/presentator/opdrachten', opdracht);
-    if (!stand || Date.now() / 1000 - stand.tijd > 45) meld('Verstuurd, maar de beamer reageert niet. Staat hij open en zichtbaar op de laptop?');
+    const nieuw = await api<BeamerStand | null>('GET', '/presentator/beamer');
+    if (nieuw && wacht && (nieuw.opdracht ?? 0) >= wacht.id) {
+      stand = nieuw;
+      bevestig(true);
+      ververs();
+      return;
+    }
+  } catch {
+    // Volgende poging.
+  }
+  if (wacht && Date.now() - wacht.sinds > 4000) bevestig(false);
+}
+
+function bevestig(gelukt: boolean) {
+  if (!wacht) return;
+  const { knop, soort } = wacht;
+  wacht = null;
+  clearInterval(snelPeilen);
+  knop?.classList.remove('bezig');
+  if (gelukt) {
+    navigator.vibrate?.([10, 40, 10]);
+    knop?.classList.add('gelukt');
+    window.setTimeout(() => knop?.classList.remove('gelukt'), 700);
+    meld(`✓ ${UITGEVOERD[soort] ?? 'Uitgevoerd'}`, 'ok');
+  } else {
+    navigator.vibrate?.([60, 60, 60]);
+    meld('De beamer reageert niet. Staat hij open, zichtbaar en verbonden met internet?');
+  }
+}
+
+function stuur(soort: string, scene?: number, knop?: HTMLElement | null) {
+  return stuurOpdracht({ soort, scene }, knop ?? null);
+}
+
+async function stuurOpdracht(opdracht: Record<string, unknown>, knop: HTMLElement | null = null) {
+  navigator.vibrate?.(12);
+  wacht?.knop?.classList.remove('bezig');
+  knop?.classList.add('bezig');
+  try {
+    const { id } = await api<{ id: number }>('POST', '/presentator/opdrachten', opdracht);
+    wacht = { id, knop, soort: String(opdracht.soort), sinds: Date.now() };
+    clearInterval(snelPeilen);
+    snelPeilen = window.setInterval(controleerBevestiging, 300);
   } catch (fout) {
+    knop?.classList.remove('bezig');
     el.verbinding.className = 'stip fout';
     const code = (fout as Error).message;
     meld(
@@ -246,32 +308,33 @@ async function stuurOpdracht(opdracht: Record<string, unknown>) {
         ? 'Je sessie is verlopen. Herlaad deze pagina.'
         : code === '403'
           ? 'Je bent niet ingelogd als presentator. Open eerst de inloglink in deze browser.'
-          : 'Geen verbinding met de server.',
+          : 'Geen verbinding met de server. De klik is niet verstuurd.',
     );
   }
-  window.setTimeout(ververs, 700);
 }
 
-document.getElementById('vorige')!.addEventListener('click', () => stuur('vorige'));
-document.getElementById('volgende-knop')!.addEventListener('click', () => stuur('volgende'));
-el.zwart.addEventListener('click', () => stuur('zwart'));
+const vorigeKnop = document.getElementById('vorige')!;
+const volgendeKnop = document.getElementById('volgende-knop')!;
+vorigeKnop.addEventListener('click', () => stuur('vorige', undefined, vorigeKnop));
+volgendeKnop.addEventListener('click', () => stuur('volgende', undefined, volgendeKnop));
+el.zwart.addEventListener('click', () => stuur('zwart', undefined, el.zwart));
 el.camera.addEventListener('click', (event) => {
   const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('button');
   if (!knop) return;
-  if (knop.dataset.vergrendel) stuurOpdracht({ soort: 'vergrendel', aan: knop.dataset.vergrendel === 'vast' });
-  else if (knop.dataset.spiegel !== undefined) stuurOpdracht({ soort: 'spiegel' });
-  else stuurOpdracht({ soort: 'telling', zone: Number(knop.dataset.zone), stap: Number(knop.dataset.stap) });
+  if (knop.dataset.vergrendel) stuurOpdracht({ soort: 'vergrendel', aan: knop.dataset.vergrendel === 'vast' }, knop);
+  else if (knop.dataset.spiegel !== undefined) stuurOpdracht({ soort: 'spiegel' }, knop);
+  else stuurOpdracht({ soort: 'telling', zone: Number(knop.dataset.zone), stap: Number(knop.dataset.stap) }, knop);
 });
 el.antwoorden.addEventListener('click', (event) => {
   const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-toon]');
   if (!knop) return;
   // Een lege waarde betekent: het getoonde antwoord weer verbergen.
-  stuur('toon', undefined, knop.dataset.toon ? Number(knop.dataset.toon) : null);
+  stuurOpdracht({ soort: 'toon', antwoord: knop.dataset.toon ? Number(knop.dataset.toon) : null, metNaam: knop.dataset.naam !== undefined }, knop);
 });
 el.scenes.addEventListener('click', (event) => {
   const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-scene]');
   if (knop) {
-    stuur('scene', Number(knop.dataset.scene));
+    stuur('scene', Number(knop.dataset.scene), knop);
     (document.getElementById('scenelijst') as HTMLDetailsElement).open = false;
   }
 });
