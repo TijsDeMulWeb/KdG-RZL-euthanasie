@@ -191,9 +191,7 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
       klasse: 'camera-melding',
       html: vast.has(d.id)
         ? 'Jullie mogen weer gaan zitten.'
-        : teller.status === 'aan'
-          ? 'Ga staan aan jouw kant. De camera telt alleen, er wordt niets opgenomen.'
-          : 'Ga staan aan jouw kant.',
+        : 'Ga staan aan jouw kant.',
     };
     ctx.overlay.toon(vakken, direct);
   }
@@ -230,7 +228,7 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
     GROEP_VOLGORDE.forEach((_, i) => {
       vakken[`anoniem${i}`] = { regio: 'abs', klasse: 'anoniem', html: `anoniem ${groepen[i].length}`, stijl: `left:${(W / 3) * (i + 0.5)}px;top:${H * 0.21}px` };
     });
-    vakken.uitleg = { regio: 'bottom', klasse: 'camera-melding', html: 'Ga staan aan jouw kant. De camera telt alleen, er wordt niets opgenomen.' };
+    vakken.uitleg = { regio: 'bottom', klasse: 'camera-melding', html: 'Ga staan aan jouw kant.' };
     ctx.overlay.toon(vakken);
   }
 
