@@ -138,7 +138,7 @@ async function start() {
         scenes: machine.namen,
         zwart: isZwart,
         bekijk: live.bekijk,
-        getoond: machine.huidige.getoondAntwoord?.() ?? null,
+        getoond: machine.huidige.getoondAntwoorden?.() ?? [],
         camera: machine.huidige.cameraStand?.() ?? null,
         opdracht: laatsteOpdracht,
       }).catch(() => {});
@@ -181,7 +181,7 @@ async function start() {
           machine.huidige.wisselSpiegel?.();
           machine.onWissel();
         } else if (o.soort === 'toon') {
-          machine.huidige.toonAntwoord?.(o.antwoord ?? null, !!o.metNaam);
+          machine.huidige.toonAntwoord?.(o.antwoord ?? null, !!o.metNaam, o.aan ?? true);
           machine.onWissel();
         }
       }

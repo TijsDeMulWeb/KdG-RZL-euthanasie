@@ -530,33 +530,26 @@ body {
     font-variation-settings: 'SOFT' 60;
 }
 
-.ster-citaat {
-    max-width: min(42vw, 900px);
-    transform: translateY(-50%);
-    padding: 2.2vh 2.4vw;
-    border: 1px solid rgba(217, 187, 127, 0.35);
-    border-radius: 18px;
-    background: rgba(6, 10, 22, 0.78);
-    box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(6px);
+/* Een getoond antwoord hangt onder (of boven) zijn ster, zonder kader, zoals de namen in de hemel. */
+.ster-tekst {
+    transform: translateX(-50%);
+    text-align: center;
+    text-shadow: 0 0 18px #020308, 0 0 8px #020308, 0 0 3px #020308;
 }
 
-.ster-citaat.links {
-    text-align: right;
-}
-
-.ster-citaat .wie {
+.ster-tekst .wie {
     display: block;
-    margin-bottom: 0.3em;
+    margin-bottom: 0.15em;
     font-size: var(--naam);
     font-weight: 600;
+    letter-spacing: 0.02em;
     color: var(--goud);
 }
 
-.ster-citaat q {
+.ster-tekst .zin {
     display: block;
     font-family: var(--serif);
-    font-size: max(36px, 4vh);
+    font-size: max(32px, 3.4vh);
     line-height: 1.3;
-    quotes: '“' '”';
+    color: var(--wit);
 }

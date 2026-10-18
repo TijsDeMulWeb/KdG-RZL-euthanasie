@@ -631,3 +631,10 @@ button.gelukt {
     box-shadow: 0 0 0 3px #7fd99a;
     transition: box-shadow 0.2s;
 }
+
+.kaartje > .rij {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}

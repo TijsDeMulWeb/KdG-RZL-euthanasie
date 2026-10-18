@@ -27,7 +27,7 @@ export function liveScene(
   naam: string,
   live: Live,
   stappen: LiveStap[],
-  extra: { klik?(sleutel: string | null, stap: number): void; toonAntwoord?(id: number | null, metNaam?: boolean): void; getoondAntwoord?(): number | null } = {},
+  extra: { klik?(sleutel: string | null, stap: number): void; toonAntwoord?(id: number | null, metNaam?: boolean, aan?: boolean): void; getoondAntwoorden?(): number[] } = {},
 ): Scene {
   let i = 0;
   let stopLuisteren: (() => void) | null = null;
@@ -63,7 +63,7 @@ export function liveScene(
     },
     klik: extra.klik ? (sleutel) => extra.klik!(sleutel, i) : undefined,
     toonAntwoord: extra.toonAntwoord,
-    getoondAntwoord: extra.getoondAntwoord,
+    getoondAntwoorden: extra.getoondAntwoorden,
     hulp(): Hulp {
       const stap = stappen[i];
       return {
@@ -138,59 +138,84 @@ export function aanmelden(ctx: Ctx, live: Live): Scene {
 export function openVraag(ctx: Ctx, live: Live, id: string): Scene {
   const vraag = vragen[id];
   const getoond = new Set<string>();
-  let gekozen: string | null = null;
-  /** Alleen als de presentator daar bewust voor kiest, staat de naam bij het antwoord. */
-  let metNaam = false;
+  /** Sterren waarvan het antwoord in beeld staat, in de volgorde waarin ze aangezet werden, met of zonder naam. */
+  const zichtbaar = new Map<string, { metNaam: boolean }>();
+
+  /**
+   * Zoekt voor elk getoond antwoord een plek onder of boven zijn ster, zonder over een ander antwoord
+   * of de vraag bovenaan te vallen. De maten zijn een schatting op basis van het aantal tekens.
+   */
+  function plaatsTeksten(): Record<string, Vak> {
+    const { W, H } = ctx.stage;
+    const fs = Math.max(32, Math.round(H * 0.034));
+    const maxB = W * 0.28;
+    const bezet: { l: number; r: number; t: number; b: number }[] = [{ l: 0, r: W, t: 0, b: H * 0.19 }];
+    const vakken: Record<string, Vak> = {};
+    for (const [sleutel, { metNaam }] of zichtbaar) {
+      const antwoord = live.antwoordVan(sleutel);
+      if (!antwoord) continue;
+      const tekst = String(antwoord.waarde);
+      const ster = vrijePlek(W, H, Number(sleutel.slice(4)));
+      const breed = Math.min(maxB, tekst.length * fs * 0.48 + 24);
+      const hoog = Math.ceil((tekst.length * fs * 0.48) / maxB) * fs * 1.3 + (metNaam ? fs * 0.9 : 0) + 12;
+      const x = Math.min(Math.max(ster.x, breed / 2 + 24), W - breed / 2 - 24);
+      const kandidaten = [ster.y + 30, ster.y - 30 - hoog, ster.y + 30 + hoog * 0.6, ster.y - 30 - hoog * 1.6];
+      const vrij = (t: number) => t > H * 0.19 && t + hoog < H * 0.97 && !bezet.some((o) => x - breed / 2 < o.r && x + breed / 2 > o.l && t < o.b && t + hoog > o.t);
+      const top = kandidaten.find(vrij) ?? kandidaten[0];
+      bezet.push({ l: x - breed / 2, r: x + breed / 2, t: top, b: top + hoog });
+      const naam = metNaam ? `<span class="wie">${esc(antwoord.naam)}</span>` : '';
+      vakken[`antwoord-${sleutel}`] = {
+        regio: 'abs',
+        klasse: 'ster-tekst',
+        html: `${naam}<span class="zin">${esc(tekst)}</span>`,
+        stijl: `left:${x}px;top:${top}px;width:${breed}px`,
+        delay: 0.15,
+      };
+    }
+    return vakken;
+  }
 
   function render(direct: boolean) {
     const sterren = gsmSterren(ctx, live, getoond, (sleutel) => {
       const antwoord = live.antwoordVan(sleutel);
       if (!antwoord) return { alpha: 0.35, size: 28 };
-      return sleutel === gekozen ? { kleur: 'goud', size: 60, alpha: 1 } : { kleur: 'goud', size: 42, alpha: 1, puls: 0.4 };
+      return zichtbaar.has(sleutel) ? { kleur: 'goud', size: 56, alpha: 1 } : { kleur: 'goud', size: 42, alpha: 1, puls: 0.4 };
     });
     ctx.stage.toon({ achtergrond: 1, sterren, duur: 1.2 }, direct);
-    const antwoord = gekozen ? live.antwoordVan(gekozen) : undefined;
-    const vakken: Record<string, Vak> = {
-      vraag: { regio: 'top', klasse: 'vraag-titel', html: esc(vraag.tekst ?? '') },
-      teller: { regio: 'top', klasse: 'telling', html: `${live.antwoorden.length} van ${live.deelnemers.length} antwoordden`, volgorde: 1 },
-    };
-    if (antwoord && gekozen) {
-      // Het antwoord verschijnt naast zijn eigen ster: rechts ervan, of links als de ster rechts op het scherm staat.
-      const { W, H } = ctx.stage;
-      const ster = vrijePlek(W, H, Number(gekozen.slice(4)));
-      const links = ster.x > W / 2;
-      const top = Math.min(Math.max(ster.y, H * 0.22), H * 0.78);
-      const naam = metNaam ? `<span class="wie">${esc(antwoord.naam)}</span>` : '';
-      vakken.antwoord = {
-        regio: 'abs',
-        klasse: `ster-citaat ${links ? 'links' : 'rechts'}`,
-        html: `${naam}<q data-pas>${esc(String(antwoord.waarde))}</q>`,
-        stijl: links ? `right:${W - ster.x + 46}px;top:${top}px` : `left:${ster.x + 46}px;top:${top}px`,
-        regels: 3,
-        delay: 0.2,
-      };
-    }
-    ctx.overlay.toon(vakken, direct);
+    ctx.overlay.toon(
+      {
+        vraag: { regio: 'top', klasse: 'vraag-titel', html: esc(vraag.tekst ?? '') },
+        teller: { regio: 'top', klasse: 'telling', html: `${live.antwoorden.length} van ${live.deelnemers.length} antwoordden`, volgorde: 1 },
+        ...plaatsTeksten(),
+      },
+      direct,
+    );
   }
 
   return liveScene(
     vraag.tekst ?? id,
     live,
-    [{ label: 'Antwoorden komen binnen; klik op een gouden ster', vraag: id, render: (direct) => render(direct) }],
+    [{ label: 'Antwoorden komen binnen; klik op gouden sterren om ze te tonen', vraag: id, render: (direct) => render(direct) }],
     {
       klik(sleutel) {
-        gekozen = sleutel && sleutel.startsWith('gsm:') && sleutel !== gekozen && live.antwoordVan(sleutel) ? sleutel : null;
-        metNaam = false;
+        if (!sleutel || !sleutel.startsWith('gsm:') || !live.antwoordVan(sleutel)) return;
+        if (zichtbaar.has(sleutel)) zichtbaar.delete(sleutel);
+        else zichtbaar.set(sleutel, { metNaam: false });
         render(false);
       },
-      toonAntwoord(id, naam = false) {
-        const antwoord = live.antwoorden.find((a) => a.id === id);
-        gekozen = antwoord ? live.sleutel(antwoord.deelnemer) : null;
-        metNaam = naam;
+      toonAntwoord(antwoordId, metNaam = false, aan = true) {
+        if (antwoordId === null) {
+          zichtbaar.clear();
+        } else {
+          const antwoord = live.antwoorden.find((a) => a.id === antwoordId);
+          const sleutel = antwoord ? live.sleutel(antwoord.deelnemer) : null;
+          if (sleutel && aan) zichtbaar.set(sleutel, { metNaam });
+          if (sleutel && !aan) zichtbaar.delete(sleutel);
+        }
         render(false);
       },
-      getoondAntwoord() {
-        return gekozen ? live.antwoordVan(gekozen)?.id ?? null : null;
+      getoondAntwoorden() {
+        return [...zichtbaar.keys()].map((k) => live.antwoordVan(k)?.id).filter((i): i is number => i !== undefined);
       },
     },
   );

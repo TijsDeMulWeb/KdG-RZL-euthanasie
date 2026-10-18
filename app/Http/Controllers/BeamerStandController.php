@@ -24,7 +24,7 @@ class BeamerStandController extends Controller
             'scenes' => ['array'],
             'zwart' => ['boolean'],
             'bekijk' => ['nullable', 'string'],
-            'getoond' => ['nullable', 'integer'],
+            'getoond' => ['nullable', 'array'],
             'camera' => ['nullable', 'array'],
             'opdracht' => ['nullable', 'integer'],
         ]);

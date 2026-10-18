@@ -10,7 +10,7 @@ interface BeamerStand {
   scenes: string[];
   zwart: boolean;
   bekijk: string | null;
-  getoond: number | null;
+  getoond: number[];
   opdracht: number | null;
   camera: { status: string; zones: number[]; ruw: number[]; correctie: number[]; spiegel: boolean; vast: boolean } | null;
   tijd: number;
@@ -74,13 +74,13 @@ function groepen(vraag: VraagDef, antwoorden: Antwoord[]): string {
 
 function lijst(vraag: VraagDef, antwoorden: Antwoord[]): string {
   if (vraag.type === 'open') {
-    const getoond = stand?.getoond ?? null;
+    const getoond = stand?.getoond ?? [];
     return antwoorden
       .map(
-        (a) => `<li class="${a.id === getoond ? 'getoond' : ''}"><div class="rij"><b>${esc(a.naam)}</b>
+        (a) => `<li class="${getoond.includes(a.id) ? 'getoond' : ''}"><div class="rij"><b>${esc(a.naam)}</b>
           ${
-            a.id === getoond
-              ? '<button class="toon" data-toon="">Verberg</button>'
+            getoond.includes(a.id)
+              ? `<button class="toon" data-toon="${a.id}" data-verberg>Verberg</button>`
               : `<span class="knoppen"><button class="toon" data-toon="${a.id}">Toon</button><button class="toon" data-toon="${a.id}" data-naam>Met naam</button></span>`
           }</div>
           <span>${esc(String(a.waarde))}</span></li>`,
@@ -111,7 +111,9 @@ function lijst(vraag: VraagDef, antwoorden: Antwoord[]): string {
 }
 
 function antwoordenHtml(vraag: VraagDef, antwoorden: Antwoord[], deelnemers: number, open: boolean): string {
-  const kop = `<p class="label">${open ? 'Vraag staat open' : 'Antwoorden'} · ${antwoorden.length} van ${deelnemers}</p>
+  const aantalGetoond = vraag.type === 'open' ? stand?.getoond?.length ?? 0 : 0;
+  const kop = `<div class="rij"><p class="label">${open ? 'Vraag staat open' : 'Antwoorden'} · ${antwoorden.length} van ${deelnemers}</p>
+      ${aantalGetoond ? `<button class="toon" data-toon="" data-verberg>Alle ${aantalGetoond} verbergen</button>` : ''}</div>
     <p class="vraagtekst">${esc(titelVan(vraag))}</p>`;
   const inhoud = vraag.type === 'keuze' || vraag.type === 'stelling' ? groepen(vraag, antwoorden) : `<ul class="lijst">${lijst(vraag, antwoorden)}</ul>`;
   const extra = vraag.antwoord !== undefined ? `<p class="zacht">Juist antwoord: ${new Intl.NumberFormat('nl-BE').format(vraag.antwoord)}${vraag.eenheid ? ` ${esc(vraag.eenheid)}` : ''}</p>` : '';
@@ -325,8 +327,16 @@ el.camera.addEventListener('click', (event) => {
 el.antwoorden.addEventListener('click', (event) => {
   const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-toon]');
   if (!knop) return;
-  // Een lege waarde betekent: het getoonde antwoord weer verbergen.
-  stuurOpdracht({ soort: 'toon', antwoord: knop.dataset.toon ? Number(knop.dataset.toon) : null, metNaam: knop.dataset.naam !== undefined }, knop);
+  // Zonder antwoord-id: alle getoonde antwoorden verbergen.
+  stuurOpdracht(
+    {
+      soort: 'toon',
+      antwoord: knop.dataset.toon ? Number(knop.dataset.toon) : null,
+      metNaam: knop.dataset.naam !== undefined,
+      aan: knop.dataset.verberg === undefined,
+    },
+    knop,
+  );
 });
 el.scenes.addEventListener('click', (event) => {
   const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-scene]');
