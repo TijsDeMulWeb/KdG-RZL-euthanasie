@@ -201,7 +201,19 @@ export function mensen(ctx: Ctx, aantal: number, zin: string, bron = ''): Scene 
   ]);
 }
 
-// ---------- abortus: sterrenbeelden en duel ----------
+// ---------- sterrenbeelden en duel ----------
+
+/**
+ * Verdeelt de namen in een duel over de linker- en rechterhelft, volgens waar hun ster staat.
+ * Staan ze allemaal aan dezelfde kant, dan gaat de meest linkse ster links en de rest rechts.
+ */
+export function verdeelOverKanten(namen: string[], pos: Record<string, { x: number }>, W: number): [string[], string[]] {
+  const gesorteerd = [...namen].sort((a, b) => pos[a].x - pos[b].x);
+  const links = gesorteerd.filter((n) => pos[n].x < W / 2);
+  const rechts = gesorteerd.filter((n) => pos[n].x >= W / 2);
+  if (!links.length || !rechts.length) return [gesorteerd.slice(0, 1), gesorteerd.slice(1)];
+  return [links, rechts];
+}
 
 /** Sterrenbeelden van één stelling met een duel: één leerling links tegenover een of meer rechts. */
 export function sterrenbeeld(ctx: Ctx, s: StellingId, links: string, rechts: string[]): Scene {
@@ -252,15 +264,14 @@ export function sterrenbeeld(ctx: Ctx, s: StellingId, links: string, rechts: str
     }
     if (!duel && selectie) vakken.citaat = { regio: 'bottom', klasse: 'citaat', html: citaatHtml(selectie.naam, selectie.open), regels: 2, delay: 0 };
     if (duel) {
-      vakken.duel0 = { regio: 'bottom', klasse: 'citaat duel links', html: citaatHtml(links, true), regels: 2, delay: 0.8 };
-      vakken.duel1 = {
-        regio: 'bottom',
-        klasse: 'citaat duel rechts',
-        html: rechts.map((n) => citaatHtml(n, true)).join(''),
-        volgorde: 1,
-        regels: 2,
-        delay: 1.2,
-      };
+      // Elk citaat komt aan de kant waar de ster van die persoon staat.
+      const [kantLinks, kantRechts] = verdeelOverKanten([links, ...rechts], beeld.pos, W);
+      if (kantLinks.length) {
+        vakken.duel0 = { regio: 'bottom', klasse: 'citaat duel links', html: kantLinks.map((n) => citaatHtml(n, true)).join(''), regels: 2, delay: 0.8 };
+      }
+      if (kantRechts.length) {
+        vakken.duel1 = { regio: 'bottom', klasse: 'citaat duel rechts', html: kantRechts.map((n) => citaatHtml(n, true)).join(''), volgorde: 1, regels: 2, delay: 1.2 };
+      }
     }
     ctx.overlay.toon(vakken, direct);
   }

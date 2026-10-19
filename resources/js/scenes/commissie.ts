@@ -6,6 +6,7 @@ import { esc, Vak } from '../overlay';
 import { Ctx, Hulp, Scene } from '../scene';
 import { SterDoel } from '../stage';
 import { klasInHemel } from './opening';
+import { verdeelOverKanten } from './slot';
 
 type Sub = 'kaart' | 'gsm' | 'staan' | 'onthulling' | 'sterrenbeeld' | 'duel' | 'tegenspraak';
 
@@ -350,7 +351,9 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
       vakken.citaat = { regio: 'bottom', klasse: 'citaat', html: citaatHtml(selectie.naam, selectie.open, d.stelling), regels: 2, delay: 0 };
     }
     if (duel) {
-      duel.forEach((naam, i) => {
+      // Het citaat van wie links aan de hemel staat, komt ook links.
+      const [kantLinks, kantRechts] = verdeelOverKanten(duel, beeld.pos, W);
+      [...kantLinks, ...kantRechts].forEach((naam, i) => {
         const open = !isGevoelig(leerling(naam), d.stelling) || duelOpen.has(naam);
         vakken[`duel${i}`] = {
           regio: 'bottom',
