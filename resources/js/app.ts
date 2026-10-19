@@ -9,6 +9,7 @@ import { commissie, dossierSleutel, MAX_STAAN, staanSleutel } from './scenes/com
 import { aanmelden, getallenlijn, openVraag, pauze, quiz } from './scenes/gsm';
 import { jullieHemel, leeg, MIDDEN } from './scenes/opening';
 import { afsluiter, herstemming, mensen, sterrenbeeld } from './scenes/slot';
+import { publiek } from './scenes/publiek';
 import { theorie } from './scenes/theorie';
 import { Stage } from './stage';
 import { Teller } from './teller';
@@ -89,6 +90,8 @@ async function start() {
         if (namen.some((n) => !klas.some((l) => l.naam === n))) return ontbrekend(ctx, 'leerling in het duel');
         return sterrenbeeld(ctx, tekst(stap, 'stelling') as Parameters<typeof sterrenbeeld>[1], tekst(stap, 'links'), lijst(stap, 'rechts'));
       }
+      case 'publieksvragen':
+        return publiek(ctx, ((stap.instellingen?.vragen as (number | string)[] | undefined) ?? []).map(Number));
       case 'herstemming':
         return herstemming(ctx, live);
       case 'afsluiter':

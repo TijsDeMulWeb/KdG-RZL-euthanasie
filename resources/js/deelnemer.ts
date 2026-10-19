@@ -128,7 +128,8 @@ function vraagScherm(vraag: VraagDef, vorig: Waarde | null) {
         ? `<form id="form"><output id="toon">${start} ${esc(vraag.eenheid ?? '')}</output><input id="waarde" type="range" min="${min}" max="${max}" step="1" value="${start}"><button>Verstuur</button></form>`
         : `<form id="form"><input id="waarde" type="number" inputmode="numeric" min="${min}" max="${max}" value="${start}" placeholder="Jouw gok" required><span class="eenheid">${esc(vraag.eenheid ?? '')}</span><button>Verstuur</button></form>`;
   }
-  toon(`<p class="vraag">${esc(titel)}</p>${invoer}`);
+  const hulpzin = vraag.type === 'open' && vraag.uitleg ? `<p class="zacht">${esc(vraag.uitleg)}</p>` : '';
+  toon(`<p class="vraag">${esc(titel)}</p>${hulpzin}${invoer}`);
 
   document.querySelectorAll<HTMLButtonElement>('[data-waarde]').forEach((knop) =>
     knop.addEventListener('click', () => verstuur(vraag, Number(knop.dataset.waarde))),

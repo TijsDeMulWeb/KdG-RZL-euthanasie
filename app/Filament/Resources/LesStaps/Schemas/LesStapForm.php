@@ -36,7 +36,7 @@ class LesStapForm
                     ]),
 
                 Section::make('Instellingen')
-                    ->visible(fn (Get $get) => in_array($get('type'), ['titel', 'openVraag', 'getallenlijn', 'theorie', 'quiz', 'commissie', 'pauze', 'mensen', 'sterrenbeeld']))
+                    ->visible(fn (Get $get) => in_array($get('type'), ['titel', 'openVraag', 'getallenlijn', 'theorie', 'quiz', 'commissie', 'pauze', 'mensen', 'sterrenbeeld', 'publieksvragen']))
                     ->schema([
                         TextInput::make('instellingen.titel')
                             ->label('Titel')
@@ -79,6 +79,13 @@ class LesStapForm
                             ->visible($is('commissie'))
                             ->required($is('commissie')),
 
+                        Select::make('instellingen.vragen')
+                            ->label('Publieksvragen, in deze volgorde')
+                            ->helperText('Leeg laten = alle publieksvragen, in de volgorde van het overzicht.')
+                            ->multiple()
+                            ->options(fn () => Keuzes::publieksvragen())
+                            ->visible($is('publieksvragen')),
+
                         TextInput::make('instellingen.minuten')
                             ->label('Minuten')
                             ->numeric()
@@ -86,9 +93,9 @@ class LesStapForm
                             ->visible($is('pauze')),
 
                         TextInput::make('instellingen.aantal')
-                            ->label('Aantal sterren (max 3.200)')
+                            ->label('Aantal sterren (max 4.600)')
                             ->numeric()
-                            ->maxValue(3200)
+                            ->maxValue(4600)
                             ->visible($is('mensen')),
                         Textarea::make('instellingen.tekst')
                             ->label('Zin onderaan')

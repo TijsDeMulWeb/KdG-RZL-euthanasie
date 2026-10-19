@@ -185,7 +185,8 @@ export function openVraag(ctx: Ctx, live: Live, id: string): Scene {
     ctx.overlay.toon(
       {
         vraag: { regio: 'top', klasse: 'vraag-titel', html: esc(vraag.tekst ?? '') },
-        teller: { regio: 'top', klasse: 'telling', html: `${live.antwoorden.length} van ${live.deelnemers.length} antwoordden`, volgorde: 1 },
+        ...(vraag.uitleg ? { hulpzin: { regio: 'top' as const, klasse: 'hulpzin', html: esc(vraag.uitleg), volgorde: 1 } } : {}),
+        teller: { regio: 'top', klasse: 'telling', html: `${live.antwoorden.length} van ${live.deelnemers.length} antwoordden`, volgorde: 2 },
         ...plaatsTeksten(),
       },
       direct,

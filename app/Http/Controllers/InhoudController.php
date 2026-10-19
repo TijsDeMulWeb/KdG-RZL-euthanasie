@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Dossier;
-use App\Models\LesStap;
 use App\Models\Leerling;
+use App\Models\LesStap;
+use App\Models\Publieksvraag;
 use App\Models\Stelling;
 use App\Models\TheorieKaart;
 use App\Models\Vraag;
@@ -41,6 +42,7 @@ class InhoudController extends Controller
                 'bron' => $kaart->bron ?? '',
                 'aanvullen' => $kaart->aanvullen ?? [],
             ]),
+            'publieksvragen' => Publieksvraag::query()->orderBy('volgorde')->get()->map(fn (Publieksvraag $vraag) => $vraag->naarFrontend()),
             'les' => LesStap::query()->where('actief', true)->orderBy('volgorde')->get(['type', 'instellingen']),
         ]);
     }

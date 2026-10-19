@@ -33,6 +33,7 @@ class LesStap extends Model
             'getallenlijn' => 'Raad het getal of schuifbalk (gsm)',
             'mensen' => 'Hemel vult zich met sterren',
             'sterrenbeeld' => 'Sterrenbeelden van een stelling met duel',
+            'publieksvragen' => 'Publieksvragen van medestudenten',
             'herstemming' => 'Herstemming (gsm)',
             'afsluiter' => 'Afsluiter met hulplijnen',
         ];
@@ -49,6 +50,9 @@ class LesStap extends Model
             'quiz' => ($instellingen['naam'] ?? 'Quiz').' ('.count($instellingen['vragen'] ?? []).' vragen)',
             'commissie' => Dossier::query()->whereIn('sleutel', $instellingen['dossiers'] ?? [])->pluck('titel')->join(', '),
             'pauze' => ($instellingen['minuten'] ?? 10).' minuten',
+            'publieksvragen' => empty($instellingen['vragen'])
+                ? 'Alle publieksvragen ('.Publieksvraag::count().')'
+                : count($instellingen['vragen']).' gekozen vragen',
             'mensen' => ($instellingen['aantal'] ?? 3000).' sterren',
             'sterrenbeeld' => 'Stelling '.ltrim($instellingen['stelling'] ?? '', 's').': '.($instellingen['links'] ?? '').' tegenover '.implode(' en ', $instellingen['rechts'] ?? []),
             default => '',

@@ -4,6 +4,7 @@ namespace App\Filament\Support;
 
 use App\Models\Dossier;
 use App\Models\Leerling;
+use App\Models\Publieksvraag;
 use App\Models\Stelling;
 use App\Models\TheorieKaart;
 use App\Models\Vraag;
@@ -44,6 +45,14 @@ class Keuzes
     public static function kaarten(): array
     {
         return TheorieKaart::query()->pluck('titel', 'sleutel')->all();
+    }
+
+    /** @return array<int, string> */
+    public static function publieksvragen(): array
+    {
+        return Publieksvraag::query()->orderBy('volgorde')->get()
+            ->mapWithKeys(fn (Publieksvraag $vraag) => [$vraag->id => str($vraag->vraag)->limit(80)->toString().($vraag->van ? " ({$vraag->van})" : '')])
+            ->all();
     }
 
     /** @return array<string, string> */

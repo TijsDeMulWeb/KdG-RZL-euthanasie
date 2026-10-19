@@ -44,7 +44,7 @@ export interface Beeld {
   mensenDuur?: number;
 }
 
-export const MAX_MENSEN = 3200;
+export const MAX_MENSEN = 4600;
 
 interface SterToestand {
   sleutel: string;

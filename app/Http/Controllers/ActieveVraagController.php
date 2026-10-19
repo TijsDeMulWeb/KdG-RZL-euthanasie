@@ -53,9 +53,14 @@ class ActieveVraagController extends Controller
         return response()->json(['vraag' => $vraag['id'] ?? null]);
     }
 
-    /** Het juiste antwoord en de uitleg blijven op de server tot de beamer ze toont. */
+    /**
+     * Het juiste antwoord en de uitleg blijven op de server tot de beamer ze toont.
+     * Bij een open vraag is de uitleg een hulpzin, die mag wel mee.
+     */
     private function voorGsm(array $vraag): array
     {
-        return collect($vraag)->except(['juist', 'antwoord', 'uitleg', 'bron'])->all();
+        $verborgen = $vraag['type'] === 'open' ? ['juist', 'antwoord', 'bron'] : ['juist', 'antwoord', 'uitleg', 'bron'];
+
+        return collect($vraag)->except($verborgen)->all();
     }
 }

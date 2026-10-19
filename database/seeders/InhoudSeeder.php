@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Dossier;
-use App\Models\LesStap;
 use App\Models\Leerling;
+use App\Models\LesStap;
 use App\Models\Stelling;
 use App\Models\TheorieKaart;
 use App\Models\Vraag;
@@ -81,6 +81,8 @@ class InhoudSeeder extends Seeder
             'type' => $stap[0],
             'instellingen' => $stap[1] ?? null,
         ]));
+
+        $this->call(OpdrachtwijzerSeeder::class);
     }
 
     /** @return array<int, array{0: string, 1?: array<string, mixed>}> */

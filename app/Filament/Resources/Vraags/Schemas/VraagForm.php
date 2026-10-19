@@ -122,6 +122,11 @@ class VraagForm
                 Grid::make(4)
                     ->visible($is('open'))
                     ->schema([
+                        Textarea::make('uitleg')
+                            ->label('Hulpzin onder de vraag')
+                            ->helperText('Optioneel. Staat klein onder de vraag, op de beamer en op de gsm. Bv. een voorbeeld van een antwoord.')
+                            ->rows(2)
+                            ->columnSpan(3),
                         TextInput::make('max_lengte')
                             ->label('Maximum aantal tekens')
                             ->numeric()

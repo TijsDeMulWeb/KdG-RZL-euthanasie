@@ -32,6 +32,13 @@ export interface Kaart {
   aanvullen: string[];
 }
 
+export interface Publieksvraag {
+  id: number;
+  vraag: string;
+  van: string | null;
+  invalshoek: string | null;
+}
+
 export interface LesStap {
   type: string;
   instellingen: Record<string, unknown> | null;
@@ -43,6 +50,7 @@ interface Inhoud {
   dossiers: Dossier[];
   vragen: VraagDef[];
   kaarten: Kaart[];
+  publieksvragen: Publieksvraag[];
   les: LesStap[];
 }
 
@@ -52,6 +60,7 @@ export let klas: Leerling[] = [];
 export let dossiers: Dossier[] = [];
 export let vragen: Record<string, VraagDef> = {};
 export let kaarten: Kaart[] = [];
+export let publieksvragen: Publieksvraag[] = [];
 export let les: LesStap[] = [];
 
 export async function laadInhoud(): Promise<void> {
@@ -61,6 +70,7 @@ export async function laadInhoud(): Promise<void> {
   dossiers = inhoud.dossiers;
   vragen = Object.fromEntries(inhoud.vragen.map((v) => [v.id, v]));
   kaarten = inhoud.kaarten;
+  publieksvragen = inhoud.publieksvragen;
   les = inhoud.les;
 }
 
