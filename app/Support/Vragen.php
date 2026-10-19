@@ -42,6 +42,13 @@ class Vragen
                 ->all();
         }
 
+        if ($vraag['type'] === 'landen') {
+            return [
+                'waarde' => ['present', 'array', 'max:200'],
+                'waarde.*' => ['string', 'size:3'],
+            ];
+        }
+
         return [
             'waarde' => match ($vraag['type']) {
                 'open' => ['required', 'string', 'max:'.($vraag['maxLengte'] ?? 80)],

@@ -36,7 +36,7 @@ class LesStapForm
                     ]),
 
                 Section::make('Instellingen')
-                    ->visible(fn (Get $get) => in_array($get('type'), ['titel', 'openVraag', 'getallenlijn', 'theorie', 'quiz', 'commissie', 'pauze', 'mensen', 'sterrenbeeld', 'publieksvragen']))
+                    ->visible(fn (Get $get) => in_array($get('type'), ['titel', 'openVraag', 'getallenlijn', 'theorie', 'quiz', 'commissie', 'pauze', 'mensen', 'sterrenbeeld', 'publieksvragen', 'wereldkaart']))
                     ->schema([
                         TextInput::make('instellingen.titel')
                             ->label('Titel')
@@ -54,6 +54,11 @@ class LesStapForm
                             ->options(fn () => Keuzes::vragen(['getal', 'schuif']))
                             ->visible($is('getallenlijn'))
                             ->required($is('getallenlijn')),
+
+                        Select::make('instellingen.vraag')
+                            ->label('Eerst laten raden met deze vraag (optioneel)')
+                            ->options(fn () => Keuzes::vragen(['landen']))
+                            ->visible($is('wereldkaart')),
 
                         Select::make('instellingen.kaart')
                             ->label('Theoriekaart')

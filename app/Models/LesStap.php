@@ -32,6 +32,7 @@ class LesStap extends Model
             'pauze' => 'Pauze met aftelklok',
             'getallenlijn' => 'Raad het getal of schuifbalk (gsm)',
             'mensen' => 'Hemel vult zich met sterren',
+            'wereldkaart' => 'Wereldkaart: waar is het legaal?',
             'sterrenbeeld' => 'Sterrenbeelden van een stelling met duel',
             'publieksvragen' => 'Publieksvragen van medestudenten',
             'herstemming' => 'Herstemming (gsm)',
@@ -54,6 +55,7 @@ class LesStap extends Model
                 ? 'Alle publieksvragen ('.Publieksvraag::count().')'
                 : count($instellingen['vragen']).' gekozen vragen',
             'mensen' => ($instellingen['aantal'] ?? 3000).' sterren',
+            'wereldkaart' => empty($instellingen['vraag']) ? 'Zonder raden' : 'Eerst raden op de gsm',
             'sterrenbeeld' => 'Stelling '.ltrim($instellingen['stelling'] ?? '', 's').': '.($instellingen['links'] ?? '').' tegenover '.implode(' en ', $instellingen['rechts'] ?? []),
             default => '',
         };

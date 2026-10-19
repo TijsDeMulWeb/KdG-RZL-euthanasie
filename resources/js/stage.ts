@@ -4,6 +4,11 @@ import { mulberry32 } from './layout';
 
 export type Kleur = 'wit' | 'goud' | 'gedempt';
 
+const WERELDKLEUREN: Record<string, [number, number, number]> = {
+  blauw: [0.62, 0.78, 1],
+  wit: [0.9, 0.92, 1],
+};
+
 const KLEUREN: Record<Kleur, [number, number, number]> = {
   wit: [1, 0.97, 0.92],
   goud: [1, 0.82, 0.5],
@@ -39,6 +44,8 @@ export interface Beeld {
   duur?: number;
   /** Duur van de camerabeweging, als die trager moet dan de sterren. */
   cameraDuur?: number;
+  /** Wereldkaart van sterren: hoe zichtbaar, en per land (ISO-code) een kleur en helderheid. */
+  wereld?: { alpha: number; landen: Record<string, { kleur: Kleur | 'blauw' | 'wit'; helder: number; delay?: number }> };
   /** Hoeveel 'mensensterren' de hemel vullen (tot MAX_MENSEN), bv. één per euthanasie. */
   mensen?: number;
   mensenDuur?: number;
@@ -162,6 +169,35 @@ const mensenFragment = /* glsl */ `
     float d = length(gl_PointCoord - 0.5) * 2.0;
     float a = (exp(-d * d * 10.0) + exp(-d * d * 50.0)) * 0.95 * vAlpha * (1.0 - smoothstep(0.8, 1.0, d));
     gl_FragColor = vec4(vec3(1.0, 0.9, 0.74) * a, a);
+  }
+`;
+
+const wereldVertex = /* glsl */ `
+  attribute vec3 aKleur;
+  attribute float aHelder;
+  attribute float aFase;
+  uniform float uPR;
+  uniform float uTijd;
+  uniform float uZoom;
+  uniform float uAlpha;
+  varying vec3 vKleur;
+  varying float vAlpha;
+  void main() {
+    float twinkel = 0.85 + 0.15 * sin(uTijd * (0.8 + aFase) + aFase * 6.28);
+    vKleur = aKleur;
+    vAlpha = uAlpha * (0.6 + aHelder * 0.4) * twinkel;
+    gl_PointSize = (5.0 + aHelder * 4.5) * uPR * uZoom;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const wereldFragment = /* glsl */ `
+  varying vec3 vKleur;
+  varying float vAlpha;
+  void main() {
+    float d = length(gl_PointCoord - 0.5) * 2.0;
+    float a = (exp(-d * d * 7.0) * 0.9 + exp(-d * d * 36.0) * 0.9) * vAlpha * (1.0 - smoothstep(0.8, 1.0, d));
+    gl_FragColor = vec4(vKleur * a, a);
   }
 `;
 
@@ -315,6 +351,11 @@ export class Stage {
   private D = 1000;
   private spoorLijnen = new Lijnen(400);
   private mensenGeo = new THREE.BufferGeometry();
+  private wereldGeo = new THREE.BufferGeometry();
+  private wereldMat: THREE.ShaderMaterial;
+  private wereldIso: string[] = [];
+  private wereldStaat = new Map<string, { r: number; g: number; b: number; helder: number }>();
+  private wereldSleutel = '';
   private mensenMat: THREE.ShaderMaterial;
   private achtergrondMat: THREE.ShaderMaterial;
   private achtergrondGeo = new THREE.BufferGeometry();
@@ -326,7 +367,7 @@ export class Stage {
   private duelLijn = new Lijnen(1);
 
   private cam = { x: 0, y: 0, zoom: 1 };
-  private sfeer = { achtergrond: 0, lijnAlpha: 0, lijnGroei: 0, duelAlpha: 0, duelGroei: 0, mensen: 0 };
+  private sfeer = { achtergrond: 0, lijnAlpha: 0, lijnGroei: 0, duelAlpha: 0, duelGroei: 0, mensen: 0, wereld: 0 };
   private huidigeLijnen: [string, string][] = [];
   private huidigDuel: [string, string] | null = null;
   private standaardCamera = true;
@@ -378,6 +419,20 @@ export class Stage {
       depthTest: false,
       blending: THREE.AdditiveBlending,
     });
+    this.wereldMat = new THREE.ShaderMaterial({
+      vertexShader: wereldVertex,
+      fragmentShader: wereldFragment,
+      uniforms: { uPR: { value: pr }, uTijd: { value: 0 }, uZoom: { value: 1 }, uAlpha: { value: 0 } },
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const wereld = new THREE.Points(this.wereldGeo, this.wereldMat);
+    wereld.frustumCulled = false;
+    wereld.renderOrder = -1;
+    this.scene.add(wereld);
+
     const mensen = new THREE.Points(this.mensenGeo, this.mensenMat);
     mensen.frustumCulled = false;
     mensen.renderOrder = -1;
@@ -480,6 +535,49 @@ export class Stage {
     this.mensenGeo.setAttribute('aFase', new THREE.BufferAttribute(fase, 1));
   }
 
+  /** Zet de punten van de wereldkaart klaar (één keer per schermgrootte). */
+  zetWereld(sleutel: string, punten: { x: number; y: number; iso: string }[]) {
+    if (sleutel === this.wereldSleutel) return;
+    this.wereldSleutel = sleutel;
+    const n = punten.length;
+    const pos = new Float32Array(n * 3);
+    const fase = new Float32Array(n);
+    punten.forEach((p, i) => {
+      pos.set([p.x, -p.y, -this.D * 0.02], i * 3);
+      fase[i] = (i * 0.618) % 1;
+    });
+    this.wereldIso = punten.map((p) => p.iso);
+    this.wereldGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    this.wereldGeo.setAttribute('aFase', new THREE.BufferAttribute(fase, 1));
+    this.wereldGeo.setAttribute('aKleur', new THREE.BufferAttribute(new Float32Array(n * 3), 3).setUsage(THREE.DynamicDrawUsage));
+    this.wereldGeo.setAttribute('aHelder', new THREE.BufferAttribute(new Float32Array(n), 1).setUsage(THREE.DynamicDrawUsage));
+  }
+
+  private toonWereld(wereld: Beeld['wereld'], direct: boolean, duur: number) {
+    gsap.to(this.sfeer, { wereld: wereld?.alpha ?? 0, duration: direct ? 0 : duur, ease: 'power2.inOut' });
+    const doelen = wereld?.landen ?? {};
+    const isos = new Set([...this.wereldStaat.keys(), ...Object.keys(doelen)]);
+    for (const iso of isos) {
+      let staat = this.wereldStaat.get(iso);
+      if (!staat) {
+        staat = { r: 0.9, g: 0.92, b: 1, helder: 0 };
+        this.wereldStaat.set(iso, staat);
+      }
+      const doel = doelen[iso];
+      const kleur = doel ? (WERELDKLEUREN[doel.kleur] ?? KLEUREN[doel.kleur as Kleur]) : [staat.r, staat.g, staat.b];
+      gsap.killTweensOf(staat);
+      gsap.to(staat, {
+        r: kleur[0],
+        g: kleur[1],
+        b: kleur[2],
+        helder: doel?.helder ?? 0,
+        duration: direct ? 0 : 0.9,
+        delay: direct ? 0 : doel?.delay ?? 0,
+        ease: 'power2.out',
+      });
+    }
+  }
+
   /** Hoeveel mensensterren er nu (afgerond) branden, voor een teller in beeld. */
   get mensenNu(): number {
     return Math.round(this.sfeer.mensen);
@@ -550,6 +648,7 @@ export class Stage {
     const nieuwDuel = beeld.duel ?? null;
     gsap.killTweensOf(this.sfeer);
     gsap.to(this.sfeer, { achtergrond: beeld.achtergrond, duration: duur, ease });
+    this.toonWereld(beeld.wereld, direct, duur);
     gsap.to(this.sfeer, {
       mensen: beeld.mensen ?? 0,
       duration: direct ? 0 : beeld.mensenDuur ?? duur,
@@ -787,6 +886,23 @@ export class Stage {
     this.achtergrondMat.uniforms.uAlpha.value = this.sfeer.achtergrond;
     this.nevelMat.uniforms.uTijd.value = tijd;
     this.mensenMat.uniforms.uTijd.value = tijd;
+    this.wereldMat.uniforms.uTijd.value = tijd;
+    this.wereldMat.uniforms.uAlpha.value = this.sfeer.wereld;
+    this.wereldMat.uniforms.uZoom.value = 1 + (this.cam.zoom - 1) * 0.5;
+    if (this.sfeer.wereld > 0.001 && this.wereldIso.length) {
+      const kleur = this.wereldGeo.attributes.aKleur.array as Float32Array;
+      const helder = this.wereldGeo.attributes.aHelder.array as Float32Array;
+      const standaard = { r: 0.9, g: 0.92, b: 1, helder: 0 };
+      this.wereldIso.forEach((iso, i) => {
+        const st = this.wereldStaat.get(iso) ?? standaard;
+        kleur[i * 3] = st.r;
+        kleur[i * 3 + 1] = st.g;
+        kleur[i * 3 + 2] = st.b;
+        helder[i] = st.helder;
+      });
+      this.wereldGeo.attributes.aKleur.needsUpdate = true;
+      this.wereldGeo.attributes.aHelder.needsUpdate = true;
+    }
     this.mensenMat.uniforms.uAantal.value = this.sfeer.mensen;
     this.nevelMat.uniforms.uAlpha.value = this.sfeer.achtergrond;
     this.nevelMat.uniforms.uAspect.value = this.W / this.H;

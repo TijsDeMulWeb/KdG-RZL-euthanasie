@@ -83,6 +83,7 @@ class InhoudSeeder extends Seeder
         ]));
 
         $this->call(OpdrachtwijzerSeeder::class);
+        $this->call(LandenSeeder::class);
     }
 
     /** @return array<int, array{0: string, 1?: array<string, mixed>}> */

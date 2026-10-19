@@ -93,6 +93,12 @@ class OpdrachtwijzerSeeder extends Seeder
             'bron' => 'FCEE, cijfers 2025 (FOD Volksgezondheid, 20 maart 2026)',
         ]);
 
+        Vraag::updateOrCreate(['sleutel' => 'wereld-raden'], [
+            'type' => 'landen',
+            'tekst' => 'In welke landen is euthanasie of hulp bij zelfdoding legaal?',
+            'uitleg' => 'Tik de landen aan op de kaart, of zoek ze in de lijst.',
+        ]);
+
         Vraag::updateOrCreate(['sleutel' => 'cijfer-70'], [
             'type' => 'getal',
             'tekst' => 'Hoeveel procent van hen was ouder dan 70?',
@@ -120,6 +126,7 @@ class OpdrachtwijzerSeeder extends Seeder
         $this->voegToe(['theorie', ['kaart' => 'begrippen']], na: ['openVraag', 'betekenis']);
         $this->voegToe(['theorie', ['kaart' => 'perspectieven']], na: ['jullieHemel']);
         $this->voegToe(['openVraag', ['vraag' => 'steelman']], na: ['theorie', 'perspectieven']);
+        $this->voegToe(['wereldkaart', ['vraag' => 'wereld-raden']], na: ['theorie', 'cijfers']);
         $this->voegToe(['publieksvragen', []], voor: ['herstemming']);
         $this->voegToe(['theorie', ['kaart' => 'conclusie']], na: ['herstemming']);
     }

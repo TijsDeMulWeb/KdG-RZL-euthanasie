@@ -17,7 +17,7 @@ export async function api<T>(methode: string, url: string, body?: unknown): Prom
 
 export interface VraagDef {
   id: string;
-  type: 'open' | 'keuze' | 'getal' | 'schuif' | 'stelling' | 'herstemming';
+  type: 'open' | 'keuze' | 'getal' | 'schuif' | 'stelling' | 'herstemming' | 'landen';
   stellingen?: string[];
   stellingTeksten?: Record<string, string>;
   tekst?: string;
@@ -39,5 +39,5 @@ export interface Antwoord {
   deelnemer: number;
   naam: string;
   vraag: string;
-  waarde: string | number | Record<string, number>;
+  waarde: string | number | Record<string, number> | string[];
 }

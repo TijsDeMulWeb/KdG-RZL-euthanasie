@@ -10,6 +10,7 @@ import { aanmelden, getallenlijn, openVraag, pauze, quiz } from './scenes/gsm';
 import { jullieHemel, leeg, MIDDEN } from './scenes/opening';
 import { afsluiter, herstemming, mensen, sterrenbeeld } from './scenes/slot';
 import { publiek } from './scenes/publiek';
+import { wereldkaart } from './scenes/wereld';
 import { theorie } from './scenes/theorie';
 import { Stage } from './stage';
 import { Teller } from './teller';
@@ -90,6 +91,10 @@ async function start() {
         if (namen.some((n) => !klas.some((l) => l.naam === n))) return ontbrekend(ctx, 'leerling in het duel');
         return sterrenbeeld(ctx, tekst(stap, 'stelling') as Parameters<typeof sterrenbeeld>[1], tekst(stap, 'links'), lijst(stap, 'rechts'));
       }
+      case 'wereldkaart': {
+        const id = tekst(stap, 'vraag');
+        return wereldkaart(ctx, live, id && vragen[id] ? id : null);
+      }
       case 'publieksvragen':
         return publiek(ctx, ((stap.instellingen?.vragen as (number | string)[] | undefined) ?? []).map(Number));
       case 'herstemming':
@@ -142,6 +147,8 @@ async function start() {
         zwart: isZwart,
         bekijk: live.bekijk,
         getoond: machine.huidige.getoondAntwoorden?.() ?? [],
+        land: machine.huidige.gekozenLand?.() ?? null,
+        wereld: !!machine.huidige.kiesLand,
         camera: machine.huidige.cameraStand?.() ?? null,
         opdracht: laatsteOpdracht,
       }).catch(() => {});
@@ -161,7 +168,7 @@ async function start() {
     if (opdrachtenBezig) return;
     opdrachtenBezig = true;
     try {
-      const opdrachten = await api<{ id: number; soort: string; scene?: number; antwoord?: number | null; zone?: number; stap?: number; aan?: boolean; metNaam?: boolean }[]>('GET', `/presentator/opdrachten?na=${laatsteOpdracht ?? 0}`);
+      const opdrachten = await api<{ id: number; soort: string; scene?: number; antwoord?: number | null; zone?: number; stap?: number; aan?: boolean; metNaam?: boolean; land?: string | null }[]>('GET', `/presentator/opdrachten?na=${laatsteOpdracht ?? 0}`);
       // Bij het laden van de pagina alleen onthouden waar we zitten, oude opdrachten niet uitvoeren.
       if (laatsteOpdracht === null) {
         laatsteOpdracht = Math.max(0, ...opdrachten.map((o) => o.id));
@@ -177,7 +184,10 @@ async function start() {
         else if (o.soort === 'vorige') machine.prev();
         else if (o.soort === 'scene' && o.scene !== undefined) machine.ga(o.scene);
         else if (o.soort === 'telling' && o.zone !== undefined && o.stap !== undefined) machine.huidige.corrigeerTelling?.(o.zone, o.stap);
-        else if (o.soort === 'vergrendel') {
+        else if (o.soort === 'land') {
+          machine.huidige.kiesLand?.(o.land ?? null);
+          machine.onWissel();
+        } else if (o.soort === 'vergrendel') {
           machine.huidige.vergrendelTelling?.(!!o.aan);
           machine.onWissel();
         } else if (o.soort === 'spiegel') {

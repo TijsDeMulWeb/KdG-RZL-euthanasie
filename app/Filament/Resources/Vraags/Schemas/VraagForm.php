@@ -24,6 +24,7 @@ class VraagForm
             'getal' => 'Raad het getal',
             'schuif' => 'Schuifbalk',
             'herstemming' => 'Herstemming over de stellingen',
+            'landen' => 'Landen aanduiden op een wereldkaart',
         ];
     }
 

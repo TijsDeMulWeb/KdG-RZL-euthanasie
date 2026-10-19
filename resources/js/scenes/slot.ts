@@ -33,7 +33,7 @@ export function herstemming(ctx: Ctx, live: Live): Scene {
     const uit = new Map<string, Record<string, number>>();
     for (const a of live.antwoorden) {
       const l = klas.find((k) => gelijkeNaam(k.naam, a.naam));
-      if (l && typeof a.waarde === 'object') uit.set(l.naam, a.waarde);
+      if (l && typeof a.waarde === 'object' && !Array.isArray(a.waarde)) uit.set(l.naam, a.waarde);
     }
     return uit;
   }

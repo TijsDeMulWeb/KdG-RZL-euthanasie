@@ -582,3 +582,68 @@ body {
     line-height: 1.35;
     color: var(--zacht);
 }
+
+.legenda {
+    display: flex;
+    justify-content: center;
+    gap: 3vw;
+    font-size: var(--naam);
+    color: var(--zacht);
+}
+
+.legenda i {
+    display: inline-block;
+    width: 0.55em;
+    height: 0.55em;
+    margin-right: 0.5em;
+    border-radius: 50%;
+    vertical-align: 0.05em;
+}
+
+.legenda i.goud,
+.land-status.goud {
+    background: none;
+    color: var(--goud);
+}
+
+.legenda i.goud {
+    background: var(--goud);
+    box-shadow: 0 0 10px var(--goud);
+}
+
+.legenda i.blauw {
+    background: #9ec7ff;
+    box-shadow: 0 0 10px #9ec7ff;
+}
+
+.legenda i.gedempt {
+    background: var(--goud-gedempt);
+    opacity: 0.6;
+}
+
+.land-kaart .land-naam {
+    margin-bottom: 0.2em;
+    font-size: max(56px, 6.4vh);
+}
+
+.land-kaart .land-status {
+    margin-bottom: 1em;
+    font-family: var(--sans);
+    font-size: var(--tekst);
+    font-weight: 600;
+}
+
+.land-status.blauw {
+    color: #9ec7ff;
+}
+
+.land-status.gedempt {
+    color: var(--goud-gedempt);
+}
+
+.land-kaart .land-bron {
+    margin-top: 1em;
+    font-family: var(--sans);
+    font-size: var(--naam);
+    color: var(--zacht);
+}

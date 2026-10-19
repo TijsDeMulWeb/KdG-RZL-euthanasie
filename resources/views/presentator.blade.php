@@ -24,6 +24,8 @@
 
             <section id="camera" class="kaartje camera" hidden></section>
 
+            <section id="wereld" class="kaartje" hidden></section>
+
             <section id="antwoorden" class="kaartje" hidden></section>
 
             <section id="deelnemers" class="kaartje"></section>

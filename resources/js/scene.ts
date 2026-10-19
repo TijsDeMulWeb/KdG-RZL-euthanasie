@@ -25,6 +25,9 @@ export interface Scene {
   /** id null = alles verbergen; aan false = dit ene antwoord weer verbergen. */
   toonAntwoord?(id: number | null, metNaam?: boolean, aan?: boolean): void;
   getoondAntwoorden?(): number[];
+  /** Wereldkaart: een land in de kijker zetten (null = terug naar de hele kaart). */
+  kiesLand?(iso: string | null): void;
+  gekozenLand?(): string | null;
   /** Stand van de cameratelling als die in deze stap loopt, anders null. */
   cameraStand?(): CameraStand | null;
   corrigeerTelling?(zone: number, stap: number): void;

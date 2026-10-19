@@ -39,6 +39,16 @@ export interface Publieksvraag {
   invalshoek: string | null;
 }
 
+export interface Land {
+  iso: string;
+  naam: string;
+  status: 'beide' | 'euthanasie' | 'hulp' | 'niet_in_werking';
+  jaar: number | null;
+  gedeeltelijk: boolean;
+  voorwaarden: string[];
+  bron: string | null;
+}
+
 export interface LesStap {
   type: string;
   instellingen: Record<string, unknown> | null;
@@ -51,6 +61,7 @@ interface Inhoud {
   vragen: VraagDef[];
   kaarten: Kaart[];
   publieksvragen: Publieksvraag[];
+  landen: Land[];
   les: LesStap[];
 }
 
@@ -61,6 +72,7 @@ export let dossiers: Dossier[] = [];
 export let vragen: Record<string, VraagDef> = {};
 export let kaarten: Kaart[] = [];
 export let publieksvragen: Publieksvraag[] = [];
+export let landen: Land[] = [];
 export let les: LesStap[] = [];
 
 export async function laadInhoud(): Promise<void> {
@@ -71,6 +83,7 @@ export async function laadInhoud(): Promise<void> {
   vragen = Object.fromEntries(inhoud.vragen.map((v) => [v.id, v]));
   kaarten = inhoud.kaarten;
   publieksvragen = inhoud.publieksvragen;
+  landen = inhoud.landen;
   les = inhoud.les;
 }
 

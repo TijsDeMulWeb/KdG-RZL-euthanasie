@@ -1,5 +1,6 @@
 import { Antwoord, api, VraagDef } from './api';
-import { Code, CODE_NAAM, klas, laadInhoud, stellingen, StellingId, vragen } from './data';
+import { Code, CODE_NAAM, klas, laadInhoud, landen, stellingen, StellingId, vragen } from './data';
+import { landnaam } from './landnamen';
 
 interface BeamerStand {
   nummer: number;
@@ -12,6 +13,8 @@ interface BeamerStand {
   bekijk: string | null;
   getoond: number[];
   opdracht: number | null;
+  land: string | null;
+  wereld: boolean;
   camera: { status: string; zones: number[]; ruw: number[]; correctie: number[]; spiegel: boolean; vast: boolean } | null;
   tijd: number;
 }
@@ -43,6 +46,7 @@ const el = {
   notities: document.getElementById('notities')!,
   antwoorden: document.getElementById('antwoorden')!,
   camera: document.getElementById('camera')!,
+  wereld: document.getElementById('wereld')!,
   deelnemers: document.getElementById('deelnemers')!,
   scenes: document.getElementById('scenes')!,
   zwart: document.getElementById('zwart') as HTMLButtonElement,
@@ -85,6 +89,14 @@ function lijst(vraag: VraagDef, antwoorden: Antwoord[]): string {
           }</div>
           <span>${esc(String(a.waarde))}</span></li>`,
       )
+      .join('');
+  }
+  if (vraag.type === 'landen') {
+    const tel = new Map<string, string[]>();
+    for (const a of antwoorden) for (const iso of a.waarde as string[]) tel.set(iso, [...(tel.get(iso) ?? []), a.naam]);
+    return [...tel.entries()]
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([iso, namen]) => `<li><div class="rij"><b>${esc(landnaam(iso))}</b><span>${namen.length}</span></div><span class="zacht">${esc(namen.join(', '))}</span></li>`)
       .join('');
   }
   if (vraag.type === 'herstemming') {
@@ -203,6 +215,16 @@ async function ververs() {
     } else {
       zet(el.scene, 'Open de beamer op de laptop');
     }
+
+    zet(
+      el.wereld,
+      stand?.wereld
+        ? `<p class="label">Land in de kijker op de beamer</p><div class="landknoppen">${landen
+            .map((l) => `<button data-land="${l.iso}" class="${stand!.land === l.iso ? 'actief' : ''}">${esc(l.naam)}</button>`)
+            .join('')}</div>${stand.land ? '<button class="spiegel" data-land="">Terug naar de hele kaart</button>' : ''}`
+        : '',
+    );
+    el.wereld.hidden = !stand?.wereld;
 
     if (stand?.camera) zetCamera(stand.camera);
     el.camera.hidden = !stand?.camera;
@@ -323,6 +345,13 @@ el.camera.addEventListener('click', (event) => {
   if (knop.dataset.vergrendel) stuurOpdracht({ soort: 'vergrendel', aan: knop.dataset.vergrendel === 'vast' }, knop);
   else if (knop.dataset.spiegel !== undefined) stuurOpdracht({ soort: 'spiegel' }, knop);
   else stuurOpdracht({ soort: 'telling', zone: Number(knop.dataset.zone), stap: Number(knop.dataset.stap) }, knop);
+});
+el.wereld.addEventListener('click', (event) => {
+  const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-land]');
+  if (!knop) return;
+  // Nog eens op hetzelfde land tikken zoomt weer uit.
+  const iso = knop.dataset.land || null;
+  stuurOpdracht({ soort: 'land', land: iso === stand?.land ? null : iso }, knop);
 });
 el.antwoorden.addEventListener('click', (event) => {
   const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-toon]');

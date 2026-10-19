@@ -1,6 +1,9 @@
+import { geoNaturalEarth1, geoPath } from 'd3-geo';
 import { api, VraagDef } from './api';
+import { landnaam } from './landnamen';
+import { landenGeo } from './wereld';
 
-type Waarde = string | number | Record<string, number>;
+type Waarde = string | number | Record<string, number> | string[];
 
 interface Stand {
   vraag: VraagDef | null;
@@ -101,6 +104,65 @@ function herstemmingScherm(vraag: VraagDef, vorig: Record<string, number> | null
   bijwerken();
 }
 
+/** Wereldkaart om landen aan te tikken, met een zoekveld voor kleine landen zoals België. */
+function landenScherm(vraag: VraagDef, vorig: string[] | null) {
+  const gekozen = new Set(vorig ?? []);
+  const B = 360;
+  const Hh = 190;
+  const proj = geoNaturalEarth1().fitExtent(
+    [
+      [4, 4],
+      [B - 4, Hh - 4],
+    ],
+    { type: 'FeatureCollection', features: landenGeo },
+  );
+  const pad = geoPath(proj);
+  const namen = landenGeo
+    .map((f) => ({ iso: String(f.id), naam: landnaam(String(f.id), f.properties.name) }))
+    .sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
+
+  toon(`
+    <p class="vraag">${esc(vraag.tekst ?? '')}</p>
+    ${vraag.uitleg ? `<p class="zacht">${esc(vraag.uitleg)}</p>` : ''}
+    <svg class="kaartje-wereld" viewBox="0 0 ${B} ${Hh}">${landenGeo
+      .map((f) => `<path data-iso="${f.id}" d="${pad(f)}"></path>`)
+      .join('')}</svg>
+    <input id="zoek" list="landnamen" placeholder="Zoek een land, bv. België" autocomplete="off">
+    <datalist id="landnamen">${namen.map((n) => `<option value="${esc(n.naam)}">`).join('')}</datalist>
+    <div id="gekozen" class="chips-gsm"></div>
+    <button id="verstuur" class="hoofd">Verstuur</button>`);
+
+  const svg = document.querySelector('svg')!;
+  const bijwerken = () => {
+    svg.querySelectorAll<SVGPathElement>('path').forEach((p) => p.classList.toggle('aan', gekozen.has(p.dataset.iso!)));
+    document.getElementById('gekozen')!.innerHTML = [...gekozen]
+      .map((iso) => `<button data-weg="${iso}">${esc(namen.find((n) => n.iso === iso)?.naam ?? iso)} ✕</button>`)
+      .join('');
+    (document.getElementById('verstuur') as HTMLButtonElement).textContent = `Verstuur (${gekozen.size})`;
+  };
+  svg.addEventListener('click', (event) => {
+    const iso = (event.target as SVGElement).getAttribute('data-iso');
+    if (!iso) return;
+    if (gekozen.has(iso)) gekozen.delete(iso);
+    else gekozen.add(iso);
+    bijwerken();
+  });
+  const zoek = document.getElementById('zoek') as HTMLInputElement;
+  zoek.addEventListener('change', () => {
+    const land = namen.find((n) => n.naam.toLowerCase() === zoek.value.trim().toLowerCase());
+    if (land) gekozen.add(land.iso);
+    zoek.value = '';
+    bijwerken();
+  });
+  document.getElementById('gekozen')!.addEventListener('click', (event) => {
+    const iso = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-weg]')?.dataset.weg;
+    if (iso) gekozen.delete(iso);
+    bijwerken();
+  });
+  document.getElementById('verstuur')!.addEventListener('click', () => verstuur(vraag, [...gekozen]));
+  bijwerken();
+}
+
 function eindeScherm() {
   toon(`<div class="ster aan"></div>
     <p class="groot">Bedankt.</p>
@@ -110,6 +172,7 @@ function eindeScherm() {
 
 function vraagScherm(vraag: VraagDef, vorig: Waarde | null) {
   if (vraag.type === 'herstemming') return herstemmingScherm(vraag, vorig as Record<string, number> | null);
+  if (vraag.type === 'landen') return landenScherm(vraag, vorig as unknown as string[] | null);
   const titel = vraag.tekst ?? '';
   let invoer = '';
   if (vraag.type === 'open') {
