@@ -3,7 +3,7 @@ import { api } from './api';
 import { dossiers, kaarten, klas, laadInhoud, les, LesStap, vragen } from './data';
 import { wisCache } from './layout';
 import { esc, Overlay } from './overlay';
-import { Ctx, lineair, Machine, Scene } from './scene';
+import { Ctx, lineair, Machine, Positie, Scene } from './scene';
 import { Live, MAX_GSM } from './live';
 import { commissie, dossierSleutel, MAX_STAAN, staanSleutel } from './scenes/commissie';
 import { aanmelden, getallenlijn, openVraag, pauze, quiz } from './scenes/gsm';
@@ -149,7 +149,9 @@ async function start() {
         getoond: machine.huidige.getoondAntwoorden?.() ?? [],
         land: machine.huidige.gekozenLand?.() ?? null,
         wereld: !!machine.huidige.kiesLand,
-        camera: machine.huidige.cameraStand?.() ?? null,
+        telling: machine.huidige.tellingStand?.() ?? null,
+        positie: machine.positie,
+        toestanden: machine.toestanden,
         opdracht: laatsteOpdracht,
       }).catch(() => {});
     }, 120);
@@ -190,9 +192,6 @@ async function start() {
         } else if (o.soort === 'vergrendel') {
           machine.huidige.vergrendelTelling?.(!!o.aan);
           machine.onWissel();
-        } else if (o.soort === 'spiegel') {
-          machine.huidige.wisselSpiegel?.();
-          machine.onWissel();
         } else if (o.soort === 'toon') {
           machine.huidige.toonAntwoord?.(o.antwoord ?? null, !!o.metNaam, o.aan ?? true);
           machine.onWissel();
@@ -208,10 +207,6 @@ async function start() {
   }
   window.setInterval(volgOpdrachten, 600);
   window.setInterval(deelStand, 15000);
-  // Tijdens het tellen ziet het presentatorscherm elke seconde wat de camera ziet.
-  window.setInterval(() => {
-    if (machine.huidige.cameraStand?.()) deelStand();
-  }, 1000);
 
   hulp.addEventListener('click', (event) => {
     const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-scene]');
@@ -268,7 +263,14 @@ async function start() {
     }, 150);
   });
 
-  machine.start();
+  // Na een herladen gaat de beamer verder waar hij was, in plaats van opnieuw te beginnen.
+  const bewaard = await api<{ positie?: Positie; toestanden?: Record<number, unknown>; zwart?: boolean } | null>('GET', '/presentator/beamer').catch(() => null);
+  if (bewaard?.positie) {
+    machine.herstel(bewaard.positie, bewaard.toestanden ?? {});
+    if (bewaard.zwart) zetZwart(true);
+  } else {
+    machine.start();
+  }
 }
 
 start();

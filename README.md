@@ -25,7 +25,7 @@ Zet een eigen `PRESENTATOR_CODE` in `.env`.
 
 ## Bediening
 
-Volgende en vorige alleen via het presentatorscherm (`/presentator`); pijltjes en clicker doen niets op de beamer. F volledig scherm, B zwart scherm, H hulpvenster met de scènelijst. Bij de staande stemming: 1, 2, 3 telt een persoon bij (Shift trekt er een af), M spiegelt links en rechts.
+Volgende en vorige alleen via het presentatorscherm (`/presentator`); pijltjes en clicker doen niets op de beamer. F volledig scherm, B zwart scherm, H hulpvenster met de scènelijst. Bij de staande stemming tel je per kant met + en - op het presentatorscherm. Herlaad je de beamer, dan gaat hij verder op dezelfde slide.
 
 ## Inhoud aanpassen
 
@@ -40,4 +40,4 @@ Herlaad de beamer na een wijziging. Wie ingelogd is in het beheer, kan ook metee
 
 ## Online zetten
 
-PHP 8.3+, HTTPS (nodig voor de camera). Lokaal `npm run build`, upload alles inclusief `public/build`, en voer `php artisan migrate` uit op de server.
+PHP 8.3+, HTTPS. Lokaal `npm run build`, upload alles inclusief `public/build`, en voer `php artisan migrate` uit op de server.

@@ -27,24 +27,22 @@ export interface Scene {
   getoondAntwoorden?(): number[];
   /** Wereldkaart: een land in de kijker zetten (null = terug naar de hele kaart). */
   kiesLand?(iso: string | null): void;
+  /** Eigen toestand die een herladen moet overleven (bv. tellingen, welke dossiers besproken zijn). */
+  bewaar?(): unknown;
+  /** Zet een bewaarde toestand terug. Geeft true als de scène daarmee ook haar positie terug heeft. */
+  herstelToestand?(toestand: unknown): boolean;
   gekozenLand?(): string | null;
-  /** Stand van de cameratelling als die in deze stap loopt, anders null. */
-  cameraStand?(): CameraStand | null;
+  /** Stand van de manuele telling (gaan staan) als die in deze stap loopt, anders null. */
+  tellingStand?(): TellingStand | null;
   corrigeerTelling?(zone: number, stap: number): void;
   /** Zet de telling vast (de camera stopt) of geeft ze weer vrij. */
   vergrendelTelling?(aan: boolean): void;
-  wisselSpiegel?(): void;
   hulp(): Hulp;
 }
 
-export interface CameraStand {
-  status: string;
-  /** Wat de telling nu toont, per kant (eens, twijfel, oneens). */
+export interface TellingStand {
+  /** Hoeveel mensen er per kant staan (eens, twijfel, oneens). */
   zones: number[];
-  /** Wat de camera op dit moment ziet, zonder correctie of uitmiddeling. */
-  ruw: number[];
-  correctie: number[];
-  spiegel: boolean;
   vast: boolean;
 }
 
@@ -106,8 +104,19 @@ export function lineair(naam: string, stappen: Stap[], extra: LineairExtra = {})
   return scene;
 }
 
+/**
+ * Waar de les staat: welke scène, en hoeveel stappen vanaf het begin of het einde van die scène.
+ * Een scène waar je met 'vorige' in komt, start op haar laatste stap; daarom tellen we dan vanaf het einde.
+ */
+export interface Positie {
+  scene: number;
+  vanaf: 'begin' | 'eind';
+  stappen: number;
+}
+
 export class Machine {
   private i = 0;
+  private positieInScene: Omit<Positie, 'scene'> = { vanaf: 'begin', stappen: 0 };
   onWissel: () => void = () => {};
 
   constructor(private scenes: Scene[]) {}
@@ -132,8 +141,47 @@ export class Machine {
     return this.scenes.map((s) => s.naam);
   }
 
+  get positie(): Positie {
+    return { scene: this.i, ...this.positieInScene };
+  }
+
+  /** Toestanden van alle scènes die er een bijhouden, per scène-index. */
+  get toestanden(): Record<number, unknown> {
+    const uit: Record<number, unknown> = {};
+    this.scenes.forEach((scene, i) => {
+      if (scene.bewaar) uit[i] = scene.bewaar();
+    });
+    return uit;
+  }
+
   start() {
     this.huidige.enter(1);
+    this.onWissel();
+  }
+
+  /**
+   * Zet de les na een herladen terug op exact dezelfde plek. De stappen worden opnieuw doorlopen,
+   * en daarna wordt alles in één keer getekend, zonder animaties.
+   */
+  herstel(positie: Positie, toestanden: Record<number, unknown> = {}) {
+    if (positie.scene < 0 || positie.scene >= this.scenes.length) return this.start();
+    let eigenPositie = false;
+    for (const [index, toestand] of Object.entries(toestanden)) {
+      const herstelde = this.scenes[Number(index)]?.herstelToestand?.(toestand) ?? false;
+      if (Number(index) === positie.scene) eigenPositie = herstelde;
+    }
+    this.i = positie.scene;
+    this.huidige.enter(1);
+    if (!eigenPositie) {
+      if (positie.vanaf === 'eind') {
+        for (let n = 0; n < 500 && this.huidige.next(); n++);
+        for (let n = 0; n < positie.stappen; n++) this.huidige.prev();
+      } else {
+        for (let n = 0; n < positie.stappen; n++) this.huidige.next();
+      }
+    }
+    this.positieInScene = { vanaf: positie.vanaf, stappen: positie.stappen };
+    this.huidige.render(true);
     this.onWissel();
   }
 
@@ -142,23 +190,30 @@ export class Machine {
     if (i === this.i || i < 0 || i >= this.scenes.length) return;
     this.huidige.verlaat?.();
     this.i = i;
+    this.positieInScene = { vanaf: 'begin', stappen: 0 };
     this.huidige.enter(1);
     this.onWissel();
   }
 
   next() {
-    if (!this.huidige.next() && this.i < this.scenes.length - 1) {
+    if (this.huidige.next()) {
+      this.positieInScene.stappen += this.positieInScene.vanaf === 'begin' ? 1 : -1;
+    } else if (this.i < this.scenes.length - 1) {
       this.huidige.verlaat?.();
       this.i++;
+      this.positieInScene = { vanaf: 'begin', stappen: 0 };
       this.huidige.enter(1);
     }
     this.onWissel();
   }
 
   prev() {
-    if (!this.huidige.prev() && this.i > 0) {
+    if (this.huidige.prev()) {
+      this.positieInScene.stappen += this.positieInScene.vanaf === 'begin' ? -1 : 1;
+    } else if (this.i > 0) {
       this.huidige.verlaat?.();
       this.i--;
+      this.positieInScene = { vanaf: 'eind', stappen: 0 };
       this.huidige.enter(-1);
     }
     this.onWissel();

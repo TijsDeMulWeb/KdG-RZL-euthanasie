@@ -15,7 +15,7 @@ type Toestand = { soort: 'overzicht' } | { soort: 'dossier'; id: string; sub: Su
 const SUB_LABEL: Record<Sub, string> = {
   kaart: 'kaart (zonder naam)',
   gsm: 'anoniem stemmen op de gsm',
-  staan: 'gaan staan: de camera telt',
+  staan: 'gaan staan: manueel tellen',
   onthulling: 'onthulling: naam en afloop',
   sterrenbeeld: 'sterrenbeelden, klik op een ster voor het citaat',
   duel: 'duel',
@@ -190,9 +190,7 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
     vakken.uitleg = {
       regio: 'bottom',
       klasse: 'camera-melding',
-      html: vast.has(d.id)
-        ? 'Jullie mogen weer gaan zitten.'
-        : 'Ga staan aan jouw kant.',
+      html: vast.has(d.id) ? 'Jullie mogen weer gaan zitten.' : 'Ga staan aan jouw kant.',
     };
     ctx.overlay.toon(vakken, direct);
   }
@@ -378,8 +376,7 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
     if (d && live.bekijk === d.stelling && live.antwoorden.length) gsmUitslag.set(d.id, gsmGroepen().map((g) => g.length) as [number, number, number]);
     const sub = d ? (t as { sub: Sub }).sub : null;
     live.open(sub === 'gsm' ? d!.stelling : null, null, sub === 'gsm' || sub === 'staan' ? d!.stelling : null);
-    if (d && (t as { sub: Sub }).sub === 'staan' && !vast.has(d.id)) teller.tel(staanTelling(d));
-    else teller.stoppen();
+    if (d && (t as { sub: Sub }).sub === 'staan') teller.tel(staanTelling(d));
 
     if (t.soort === 'overzicht') return renderOverzicht(direct);
     if (t.sub === 'kaart' || t.sub === 'onthulling') return renderKaart(d!, t.sub, direct);
@@ -414,10 +411,7 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
       }
       if (t.sub === 'tegenspraak') notities.push(`Flikkeren: ${tegenspraakNamenVan().join(', ')}.`);
       if (t.sub === 'gsm') notities.push(`${live.antwoorden.length} van ${live.deelnemers.length} stemden.`);
-      if (t.sub === 'staan') {
-        const status = { uit: 'uit', laden: 'wordt gestart', aan: `aan, ziet nu ${teller.ruw.join(' / ')}`, fout: 'niet beschikbaar' }[teller.status];
-        notities.push(`Camera ${status}. Corrigeer met + en − in het camerablok.`);
-      }
+      if (t.sub === 'staan') notities.push('Tel per kant met + en − in het telblok, en zet de telling daarna vast.');
     }
     return { stap: beschrijf(t), volgende: beschrijf(volgendeToestand()), notities };
   }
@@ -429,7 +423,6 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
       // Van voren: begint in het overzicht. Van achteren: de bewaarde geschiedenis loopt gewoon terug.
       selectie = null;
       duelOpen.clear();
-      teller.start();
       stopLuisteren?.();
       const stopLive = live.luister(liveGewijzigd);
       const stopTeller = teller.luister(tellerGewijzigd);
@@ -442,7 +435,6 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
     verlaat() {
       stopLuisteren?.();
       stopLuisteren = null;
-      teller.stoppen();
       live.open(null);
     },
     next() {
@@ -460,18 +452,30 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
       return true;
     },
     render,
-    cameraStand() {
+    bewaar() {
+      return { geschiedenis, staan: [...staan], gsmUitslag: [...gsmUitslag], vast: [...vast] };
+    },
+    herstelToestand(toestand) {
+      const bewaard = toestand as Partial<{
+        geschiedenis: Toestand[];
+        staan: [string, [number, number, number]][];
+        gsmUitslag: [string, [number, number, number]][];
+        vast: string[];
+      }>;
+      if (!bewaard.geschiedenis?.length) return false;
+      geschiedenis.splice(0, geschiedenis.length, ...bewaard.geschiedenis);
+      staan.clear();
+      (bewaard.staan ?? []).forEach(([id, telling]) => staan.set(id, telling));
+      gsmUitslag.clear();
+      (bewaard.gsmUitslag ?? []).forEach(([id, uitslag]) => gsmUitslag.set(id, uitslag));
+      vast.clear();
+      (bewaard.vast ?? []).forEach((id) => vast.add(id));
+      return true;
+    },
+    tellingStand() {
       const t = huidig();
       if (t.soort !== 'dossier' || t.sub !== 'staan') return null;
-      const isVast = vast.has(t.id);
-      return {
-        status: teller.status,
-        zones: isVast ? [...staanTelling(dossier(t.id))] : [...teller.zones],
-        ruw: [...teller.ruw],
-        correctie: [...teller.correctie],
-        spiegel: teller.spiegel,
-        vast: isVast,
-      };
+      return { zones: [...staanTelling(dossier(t.id))], vast: vast.has(t.id) };
     },
     corrigeerTelling(zone, stap) {
       const t = huidig();
@@ -481,17 +485,9 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
       const t = huidig();
       if (t.soort !== 'dossier' || t.sub !== 'staan') return;
       const d = dossier(t.id);
-      if (aan) {
-        teller.stoppen();
-        vast.add(d.id);
-      } else {
-        vast.delete(d.id);
-        teller.tel(staanTelling(d));
-      }
+      if (aan) vast.add(d.id);
+      else vast.delete(d.id);
       renderStaan(d, false);
-    },
-    wisselSpiegel() {
-      teller.spiegel = !teller.spiegel;
     },
     toets(event) {
       const t = huidig();
@@ -499,10 +495,6 @@ export function commissie(ctx: Ctx, teller: Teller, live: Live, ids: string[], e
       const zone = ['Digit1', 'Digit2', 'Digit3'].indexOf(event.code);
       if (zone >= 0) {
         teller.corrigeer(zone, event.shiftKey ? -1 : 1);
-        return true;
-      }
-      if (event.code === 'KeyM') {
-        teller.spiegel = !teller.spiegel;
         return true;
       }
       return false;

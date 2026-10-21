@@ -62,6 +62,11 @@ export class Overlay {
       }
       const zelfde = a.vak.html === vak.html && a.vak.klasse === vak.klasse && a.vak.stijl === vak.stijl;
       a.vak = vak;
+      if (zelfde && direct) {
+        // Na een herladen meteen de eindtoestand, ook als er nog een vervaging liep.
+        gsap.killTweensOf(a.el);
+        a.el.style.opacity = '1';
+      }
       if (zelfde) continue;
       gsap.killTweensOf(a.el);
       gsap.to(a.el, {

@@ -22,7 +22,7 @@
 
             <ul id="notities" class="notities" hidden></ul>
 
-            <section id="camera" class="kaartje camera" hidden></section>
+            <section id="telling" class="kaartje camera" hidden></section>
 
             <section id="wereld" class="kaartje" hidden></section>
 

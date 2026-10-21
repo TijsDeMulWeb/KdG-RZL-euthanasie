@@ -15,7 +15,7 @@ interface BeamerStand {
   opdracht: number | null;
   land: string | null;
   wereld: boolean;
-  camera: { status: string; zones: number[]; ruw: number[]; correctie: number[]; spiegel: boolean; vast: boolean } | null;
+  telling: { zones: number[]; vast: boolean } | null;
   tijd: number;
 }
 
@@ -45,7 +45,7 @@ const el = {
   volgende: document.getElementById('volgende')!,
   notities: document.getElementById('notities')!,
   antwoorden: document.getElementById('antwoorden')!,
-  camera: document.getElementById('camera')!,
+  telling: document.getElementById('telling')!,
   wereld: document.getElementById('wereld')!,
   deelnemers: document.getElementById('deelnemers')!,
   scenes: document.getElementById('scenes')!,
@@ -132,50 +132,37 @@ function antwoordenHtml(vraag: VraagDef, antwoorden: Antwoord[], deelnemers: num
   return kop + inhoud + extra;
 }
 
-// ---------- camera ----------
-
-const STATUS: Record<string, string> = {
-  aan: 'Camera telt',
-  laden: 'Camera wordt gestart…',
-  uit: 'Camera staat uit',
-  fout: 'Camera werkt niet: tel zelf met + en −',
-};
+// ---------- telling bij het gaan staan ----------
 
 /**
- * Het blok wordt één keer opgebouwd; daarna veranderen alleen de getallen en de status.
- * Zo blijven de knoppen staan en gaat er geen tik verloren terwijl de telling elke seconde ververst.
+ * Het blok wordt één keer opgebouwd; daarna veranderen alleen de getallen.
+ * Zo blijven de knoppen staan en gaat er geen tik verloren terwijl het scherm ververst.
  */
-function zetCamera(camera: NonNullable<BeamerStand['camera']>) {
+function zetTelling(telling: NonNullable<BeamerStand['telling']>) {
   const kanten = ['Eens', 'Twijfel', 'Oneens'];
-  if (!el.camera.querySelector('.zones')) {
-    el.camera.innerHTML = `<div class="camera-kop"><span class="stip" data-veld="stip"></span><b data-veld="status"></b></div>
+  if (!el.telling.querySelector('.zones')) {
+    el.telling.innerHTML = `<div class="camera-kop"><b data-veld="status"></b></div>
       <p class="zacht">Eens links, twijfel midden, oneens rechts, gezien vanuit de klas.</p>
       <div class="zones">${kanten
         .map(
           (kant, z) => `<div class="zone">
             <span class="label">${kant}</span>
             <span class="zone-getal" data-veld="zone${z}"></span>
-            <span class="zacht" data-veld="ruw${z}"></span>
             <div class="plusmin"><button data-zone="${z}" data-stap="-1" aria-label="${kant} min één">−</button><button data-zone="${z}" data-stap="1" aria-label="${kant} plus één">+</button></div>
           </div>`,
         )
         .join('')}</div>
-      <button class="vastzetten" data-vergrendel></button>
-      <button class="spiegel" data-spiegel>Links en rechts omwisselen</button>`;
+      <button class="vastzetten" data-vergrendel></button>`;
   }
-  const veld = (naam: string) => el.camera.querySelector<HTMLElement>(`[data-veld="${naam}"]`)!;
-  const werkt = camera.status === 'aan' && !camera.vast;
-  veld('stip').className = `stip ${werkt ? 'aan' : camera.status === 'fout' && !camera.vast ? 'fout' : ''}`;
-  veld('status').textContent = camera.vast ? 'Telling staat vast' : STATUS[camera.status] ?? camera.status;
-  el.camera.classList.toggle('is-vast', camera.vast);
-  el.camera.querySelectorAll<HTMLButtonElement>('[data-zone], [data-spiegel]').forEach((knop) => (knop.disabled = camera.vast));
-  const vergrendel = el.camera.querySelector<HTMLButtonElement>('[data-vergrendel]')!;
-  vergrendel.dataset.vergrendel = camera.vast ? 'los' : 'vast';
-  vergrendel.textContent = camera.vast ? 'Telling vrijgeven' : 'Telling vastzetten';
+  const veld = (naam: string) => el.telling.querySelector<HTMLElement>(`[data-veld="${naam}"]`)!;
+  veld('status').textContent = telling.vast ? 'Telling staat vast' : 'Tel wie er staat';
+  el.telling.classList.toggle('is-vast', telling.vast);
+  el.telling.querySelectorAll<HTMLButtonElement>('[data-zone]').forEach((knop) => (knop.disabled = telling.vast));
+  const vergrendel = el.telling.querySelector<HTMLButtonElement>('[data-vergrendel]')!;
+  vergrendel.dataset.vergrendel = telling.vast ? 'los' : 'vast';
+  vergrendel.textContent = telling.vast ? 'Telling vrijgeven' : 'Telling vastzetten';
   kanten.forEach((_, z) => {
-    veld(`zone${z}`).textContent = String(camera.zones[z]);
-    const correctie = camera.correctie[z] ? ` · ${camera.correctie[z] > 0 ? '+' : ''}${camera.correctie[z]}` : '';
-    veld(`ruw${z}`).textContent = camera.vast ? 'vast' : `${werkt ? `ziet ${camera.ruw[z]}` : 'zelf geteld'}${correctie}`;
+    veld(`zone${z}`).textContent = String(telling.zones[z]);
   });
 }
 
@@ -226,8 +213,8 @@ async function ververs() {
     );
     el.wereld.hidden = !stand?.wereld;
 
-    if (stand?.camera) zetCamera(stand.camera);
-    el.camera.hidden = !stand?.camera;
+    if (stand?.telling) zetTelling(stand.telling);
+    el.telling.hidden = !stand?.telling;
 
     zet(el.antwoorden, vraag ? antwoordenHtml(vraag, antwoorden, deelnemers.length, actief.vraag?.id === vraag.id) : '');
     el.antwoorden.hidden = !vraag;
@@ -263,7 +250,6 @@ const UITGEVOERD: Record<string, string> = {
   scene: 'Naar de scène gesprongen',
   toon: 'Aangepast op de beamer',
   telling: 'Telling aangepast',
-  spiegel: 'Links en rechts gewisseld',
   vergrendel: 'Telling aangepast',
 };
 
@@ -339,11 +325,10 @@ const volgendeKnop = document.getElementById('volgende-knop')!;
 vorigeKnop.addEventListener('click', () => stuur('vorige', undefined, vorigeKnop));
 volgendeKnop.addEventListener('click', () => stuur('volgende', undefined, volgendeKnop));
 el.zwart.addEventListener('click', () => stuur('zwart', undefined, el.zwart));
-el.camera.addEventListener('click', (event) => {
+el.telling.addEventListener('click', (event) => {
   const knop = (event.target as HTMLElement).closest<HTMLButtonElement>('button');
   if (!knop) return;
   if (knop.dataset.vergrendel) stuurOpdracht({ soort: 'vergrendel', aan: knop.dataset.vergrendel === 'vast' }, knop);
-  else if (knop.dataset.spiegel !== undefined) stuurOpdracht({ soort: 'spiegel' }, knop);
   else stuurOpdracht({ soort: 'telling', zone: Number(knop.dataset.zone), stap: Number(knop.dataset.stap) }, knop);
 });
 el.wereld.addEventListener('click', (event) => {
