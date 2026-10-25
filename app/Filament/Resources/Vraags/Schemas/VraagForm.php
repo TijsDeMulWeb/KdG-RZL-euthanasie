@@ -85,8 +85,8 @@ class VraagForm
                     ]),
 
                 Section::make('Markeringen op de lijn')
-                    ->description('Verschijnen bij het onthullen, bv. de wet in België en Nederland.')
-                    ->visible($is('schuif'))
+                    ->description('Schuifbalk: verschijnen bij het onthullen, bv. de wet in België en Nederland. Raad het getal: verschijnen met een extra klik na het juiste antwoord, bv. het aantal van een jaar eerder.')
+                    ->visible($is('getal', 'schuif'))
                     ->schema([
                         Repeater::make('markeringen')
                             ->hiddenLabel()

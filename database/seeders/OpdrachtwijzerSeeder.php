@@ -89,6 +89,7 @@ class OpdrachtwijzerSeeder extends Seeder
             'min' => 0,
             'max' => 20000,
             'antwoord' => 4486,
+            'markeringen' => [['waarde' => 3991, 'label' => '2024']],
             'uitleg' => '4.486 mensen, 12,4 procent meer dan in 2024. Dat is 4 procent van alle overlijdens.',
             'bron' => 'FCEE, cijfers 2025 (FOD Volksgezondheid, 20 maart 2026)',
         ]);
@@ -127,7 +128,6 @@ class OpdrachtwijzerSeeder extends Seeder
         $this->voegToe(['theorie', ['kaart' => 'perspectieven']], na: ['jullieHemel']);
         $this->voegToe(['openVraag', ['vraag' => 'steelman']], na: ['theorie', 'perspectieven']);
         $this->voegToe(['wereldkaart', ['vraag' => 'wereld-raden']], na: ['theorie', 'cijfers']);
-        $this->voegToe(['publieksvragen', []], voor: ['herstemming']);
         $this->voegToe(['theorie', ['kaart' => 'conclusie']], na: ['herstemming']);
     }
 

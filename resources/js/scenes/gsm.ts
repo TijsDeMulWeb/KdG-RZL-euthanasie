@@ -277,7 +277,15 @@ export function getallenlijn(ctx: Ctx, live: Live, id: string): Scene {
   const getoond = new Set<string>();
   const nf = new Intl.NumberFormat('nl-BE');
 
-  const render = (onthul: boolean) => (direct: boolean) => {
+  /**
+   * fase 0: antwoorden komen binnen; 1: onthulling; 2: vergelijken met de extra markeringen.
+   * Bij een schuifbalk zijn de markeringen zelf de onthulling. Bij een gok komt eerst het juiste antwoord,
+   * en pas met een extra klik de markeringen ernaast (bv. het aantal van een jaar eerder).
+   */
+  const extraFase = vraag.type === 'getal' && vraag.antwoord !== undefined && (vraag.markeringen ?? []).length > 0;
+
+  const render = (fase: 0 | 1 | 2) => (direct: boolean) => {
+    const onthul = fase > 0;
     const { W, H } = ctx.stage;
     const waarden = live.antwoorden.map((a) => Number(a.waarde));
     const min = vraag.min ?? 0;
@@ -317,13 +325,17 @@ export function getallenlijn(ctx: Ctx, live: Live, id: string): Scene {
       },
     };
     if (onthul) {
-      const markeringen = vraag.markeringen ?? (vraag.antwoord !== undefined ? [{ waarde: vraag.antwoord, label: `${nf.format(vraag.antwoord)}${eenheid}` }] : []);
-      markeringen.forEach((m, i) => {
-        vakken[`markering${i}`] = {
+      const antwoordMarkering = vraag.antwoord !== undefined && vraag.type === 'getal' ? [{ sleutel: 'antwoord', waarde: vraag.antwoord, tekst: `${nf.format(vraag.antwoord)}${eenheid}` }] : [];
+      const extra = (vraag.markeringen ?? []).map((m, i) => ({ sleutel: `extra${i}`, waarde: m.waarde, tekst: `${m.label} · ${nf.format(m.waarde)}${eenheid}` }));
+      const zichtbaar = vraag.type === 'schuif' ? extra : fase === 2 ? [...antwoordMarkering, ...extra] : antwoordMarkering;
+      zichtbaar.forEach((m, i) => {
+        const rij = (i % 2) * maten(H).naam * 1.6;
+        vakken[`markering-${m.sleutel}`] = {
           regio: 'abs',
-          klasse: 'markering',
-          html: `<span class="streep"></span><span class="tekst">${esc(m.label)}${vraag.markeringen ? ` · ${m.waarde}${eenheid}` : ''}</span>`,
-          stijl: `left:${xVan(m.waarde)}px;top:${H * 0.32 + (i % 2) * maten(H).naam * 1.6}px;height:${lijnY - H * 0.32 - (i % 2) * maten(H).naam * 1.6}px`,
+          // Een markering links van het juiste antwoord krijgt haar tekst aan de linkerkant, anders kruist ze die lijn.
+          klasse: `markering${m.sleutel === 'antwoord' ? '' : ' extra'}${vraag.antwoord !== undefined && m.sleutel !== 'antwoord' && m.waarde < vraag.antwoord ? ' tekst-links' : ''}`,
+          html: `<span class="streep"></span><span class="tekst">${esc(m.tekst)}</span>`,
+          stijl: `left:${xVan(m.waarde)}px;top:${H * 0.32 + rij}px;height:${lijnY - H * 0.32 - rij}px`,
           delay: 0.3 + i * 0.5,
         };
       });
@@ -332,9 +344,13 @@ export function getallenlijn(ctx: Ctx, live: Live, id: string): Scene {
     ctx.overlay.toon(vakken, direct);
   };
 
+  const bron = () => (vraag.bron ? [`Bron: ${vraag.bron}`] : []);
   return liveScene(vraag.tekst ?? id, live, [
-    { label: 'Antwoorden komen binnen', vraag: id, render: render(false) },
-    { label: vraag.type === 'schuif' ? 'Wetgeving tonen' : 'Juiste antwoord tonen', vraag: null, bekijk: id, render: render(true), notities: () => (vraag.bron ? [`Bron: ${vraag.bron}`] : []) },
+    { label: 'Antwoorden komen binnen', vraag: id, render: render(0) },
+    { label: vraag.type === 'schuif' ? 'Wetgeving tonen' : 'Juiste antwoord tonen', vraag: null, bekijk: id, render: render(1), notities: bron },
+    ...(extraFase
+      ? [{ label: `Vergelijken: ${(vraag.markeringen ?? []).map((m) => m.label).join(', ')}`, vraag: null, bekijk: id, render: render(2), notities: bron }]
+      : []),
   ]);
 }
 
