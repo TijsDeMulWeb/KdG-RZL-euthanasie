@@ -21,8 +21,9 @@ class LeerlingForm
             ->columns(1)
             ->components([
                 TextInput::make('naam')
-                    ->helperText('Moet overeenkomen met de voornaam die ze op hun gsm typen, anders telt de herstemming niet mee.')
-                    ->required(),
+                    ->helperText('Moet uniek zijn en overeenkomen met de voornaam die ze op hun gsm typen, anders telt de herstemming niet mee.')
+                    ->required()
+                    ->unique(ignoreRecord: true),
                 Section::make('Antwoorden en citaten uit de vragenlijst')
                     ->schema($stellingen->flatMap(fn (Stelling $stelling) => [
                         Select::make("antwoorden.{$stelling->code}")
