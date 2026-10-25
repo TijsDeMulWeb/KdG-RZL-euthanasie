@@ -120,6 +120,12 @@ body.geen-cursor * {
     letter-spacing: 0.01em;
 }
 
+.ondertitel {
+    margin-top: 3vh;
+    font-size: var(--tekst);
+    color: var(--zacht);
+}
+
 .stelling {
     font-family: var(--serif);
     font-style: italic;

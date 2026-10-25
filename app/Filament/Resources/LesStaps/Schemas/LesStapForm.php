@@ -44,6 +44,11 @@ class LesStapForm
                             ->visible($is('titel'))
                             ->required($is('titel')),
 
+                        TextInput::make('instellingen.ondertitel')
+                            ->label('Ondertitel')
+                            ->helperText('Bijvoorbeeld de namen van de groepsleden.')
+                            ->visible($is('titel')),
+
                         Select::make('instellingen.vraag')
                             ->label('Vraag')
                             ->options(fn () => Keuzes::vragen(['open']))

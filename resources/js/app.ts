@@ -54,7 +54,7 @@ async function start() {
   function maakScene(stap: LesStap): Scene {
     switch (stap.type) {
       case 'titel':
-        return leeg(ctx, tekst(stap, 'titel'));
+        return leeg(ctx, tekst(stap, 'titel'), tekst(stap, 'ondertitel'));
       case 'aanmelden':
         return aanmelden(ctx, live);
       case 'openVraag':

@@ -35,7 +35,7 @@ export function asLabels(ctx: Ctx, alpha = 1): Record<string, Vak> {
   };
 }
 
-export function leeg(ctx: Ctx, titel: string): Scene {
+export function leeg(ctx: Ctx, titel: string, ondertitel = ''): Scene {
   return lineair('Leeg', [
     {
       label: 'Eén ster en de titel',
@@ -44,7 +44,13 @@ export function leeg(ctx: Ctx, titel: string): Scene {
           { achtergrond: 0, sterren: { [MIDDEN]: { ...middenPunt(ctx), size: 70, puls: 0.5 } }, camera: cameraOpMidden(ctx), duur: 2.4 },
           direct,
         );
-        ctx.overlay.toon({ titel: { regio: 'center', klasse: 'titel', html: esc(titel), delay: 0.8 } }, direct);
+        ctx.overlay.toon(
+          {
+            titel: { regio: 'center', klasse: 'titel', html: esc(titel), delay: 0.8 },
+            ...(ondertitel ? { ondertitel: { regio: 'center' as const, klasse: 'ondertitel', html: esc(ondertitel), delay: 1.6, volgorde: 1 } } : {}),
+          },
+          direct,
+        );
       },
     },
   ]);

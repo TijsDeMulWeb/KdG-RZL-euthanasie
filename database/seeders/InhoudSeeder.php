@@ -91,7 +91,7 @@ class InhoudSeeder extends Seeder
     private function lesverloop(): array
     {
         return [
-            ['titel', ['titel' => 'Hoe ver mag zelfbeschikking gaan?']],
+            ['titel', ['titel' => 'Hoe ver mag zelfbeschikking gaan?', 'ondertitel' => 'Tijs De Mul, Tristan Rombout, Sky Van Dooren, Stien Tanghe']],
             ['aanmelden'],
             ['openVraag', ['vraag' => 'betekenis']],
             ['theorie', ['kaart' => 'kader']],
