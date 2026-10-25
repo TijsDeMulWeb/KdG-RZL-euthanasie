@@ -64,7 +64,7 @@ export function wereldkaart(ctx: Ctx, live: Live, vraagId: string | null): Scene
     ctx.overlay.toon(
       {
         vraag: { regio: 'top', klasse: 'vraag-titel', html: esc(vraag?.tekst ?? '') },
-        teller: { regio: 'top', klasse: 'telling', html: `${live.antwoorden.length} van ${live.deelnemers.length} antwoordden · hoe witter, hoe meer stemmen`, volgorde: 1 },
+        teller: { regio: 'top', klasse: 'telling', html: `${live.antwoorden.length} van ${live.deelnemers.length} antwoordden`, volgorde: 1 },
       },
       direct,
     );
