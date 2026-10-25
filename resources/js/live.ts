@@ -16,6 +16,7 @@ export class Live {
   bekijk: string | null = null;
   pauzeTot: number | null = null;
   einde = false;
+  lichtje = false;
   bereikbaar = true;
   private luisteraars = new Set<() => void>();
   private vorige = '';
@@ -34,18 +35,19 @@ export class Live {
    * Opent een vraag op de gsm's, of sluit alles met null. Met pauzeTot tonen de gsm's een aftelklok.
    * `bekijk` houdt de antwoorden van een gesloten vraag in beeld, bv. om het juiste antwoord te onthullen.
    */
-  async open(vraag: string | null, pauzeTot: number | null = null, bekijk: string | null = vraag, einde = false): Promise<void> {
+  async open(vraag: string | null, pauzeTot: number | null = null, bekijk: string | null = vraag, einde = false, lichtje = false): Promise<void> {
     if (bekijk !== this.bekijk) {
       this.bekijk = bekijk;
       this.antwoorden = [];
       this.meld();
     }
-    if (vraag === this.vraag && pauzeTot === this.pauzeTot && einde === this.einde) return;
+    if (vraag === this.vraag && pauzeTot === this.pauzeTot && einde === this.einde && lichtje === this.lichtje) return;
     this.vraag = vraag;
     this.pauzeTot = pauzeTot;
     this.einde = einde;
+    this.lichtje = lichtje;
     try {
-      await api('PUT', '/presentator/actieve-vraag', { vraag, pauzeTot, einde });
+      await api('PUT', '/presentator/actieve-vraag', { vraag, pauzeTot, einde, lichtje });
       this.bereikbaar = true;
     } catch {
       this.bereikbaar = false;

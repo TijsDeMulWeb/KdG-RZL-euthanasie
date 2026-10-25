@@ -26,6 +26,7 @@ class ActieveVraagController extends Controller
             'vraag' => $vraag ? $this->voorGsm($vraag) : null,
             'pauze' => Cache::get('pauze-tot'),
             'einde' => Cache::get('einde', false),
+            'lichtje' => Cache::get('lichtje', false),
             'antwoord' => $eigenAntwoord,
         ]);
     }
@@ -36,6 +37,7 @@ class ActieveVraagController extends Controller
             'vraag' => ['nullable', 'string'],
             'pauzeTot' => ['nullable', 'integer'],
             'einde' => ['boolean'],
+            'lichtje' => ['boolean'],
         ]);
 
         $vraag = isset($gegevens['vraag']) ? Vragen::vind($gegevens['vraag']) : null;
@@ -49,6 +51,7 @@ class ActieveVraagController extends Controller
             : Cache::forget('pauze-tot');
 
         Cache::forever('einde', $gegevens['einde'] ?? false);
+        Cache::forever('lichtje', $gegevens['lichtje'] ?? false);
 
         return response()->json(['vraag' => $vraag['id'] ?? null]);
     }

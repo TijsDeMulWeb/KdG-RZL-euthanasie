@@ -15,6 +15,8 @@ export interface LiveStap {
   pauzeTot?: () => number;
   /** De gsm's tonen het slotscherm met de hulplijnen. */
   einde?: boolean;
+  /** De gsm's worden een gloeiende ster, om omhoog te houden in het donker. */
+  lichtje?: boolean;
   render(direct: boolean): void;
   notities?: () => string[];
 }
@@ -53,7 +55,7 @@ export function liveScene(
     },
     render(direct = false) {
       const stap = stappen[i];
-      live.open(stap.vraag, stap.pauzeTot?.() ?? null, stap.bekijk ?? stap.vraag, stap.einde ?? false);
+      live.open(stap.vraag, stap.pauzeTot?.() ?? null, stap.bekijk ?? stap.vraag, stap.einde ?? false, stap.lichtje ?? false);
       stap.render(direct);
     },
     verlaat() {

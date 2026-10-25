@@ -9,6 +9,7 @@ interface Stand {
   vraag: VraagDef | null;
   pauze: number | null;
   einde: boolean;
+  lichtje: boolean;
   antwoord: Waarde | null;
 }
 
@@ -17,6 +18,7 @@ let naam = app.dataset.naam || null;
 let huidigeVraag: string | null = null;
 let huidigePauze: number | null = null;
 let huidigEinde = false;
+let huidigLichtje = false;
 let laatsteStand: Stand | null = null;
 
 function esc(t: string): string {
@@ -166,7 +168,6 @@ function landenScherm(vraag: VraagDef, vorig: string[] | null) {
 function eindeScherm() {
   toon(`<div class="ster aan"></div>
     <p class="groot">Bedankt.</p>
-    <p class="zacht">Achter elk lichtje zit een mens met een verhaal.</p>
     <p class="zacht">Zit je ergens mee? Praat erover.<br>Tele-Onthaal <a href="tel:106">106</a> · Zelfmoordlijn <a href="tel:1813">1813</a></p>`);
 }
 
@@ -210,6 +211,12 @@ function vraagScherm(vraag: VraagDef, vorig: Waarde | null) {
   });
 }
 
+/** Het hele scherm wordt een ster. In het donker, met alle gsm's omhoog, is de klas zelf de hemel. */
+function lichtjeScherm() {
+  toon(`<div class="lichtje" style="animation-delay:-${(Math.random() * 4).toFixed(2)}s"></div><p class="lichtje-zin">Hou je gsm omhoog.</p>`);
+  document.body.classList.add('donker');
+}
+
 function pauzeScherm(tot: number) {
   const rest = Math.max(0, Math.round((tot - Date.now()) / 1000));
   toon(`<div class="ster"></div><p class="groot">Pauze</p><p class="klok">${Math.floor(rest / 60)}:${String(rest % 60).padStart(2, '0')}</p>`);
@@ -220,6 +227,17 @@ async function peil() {
   try {
     const stand = await api<Stand>('GET', '/actieve-vraag');
     laatsteStand = stand;
+    if (stand.lichtje) {
+      if (!huidigLichtje) lichtjeScherm();
+      huidigLichtje = true;
+      huidigeVraag = null;
+      return;
+    }
+    if (huidigLichtje) {
+      huidigLichtje = false;
+      document.body.classList.remove('donker');
+      huidigeVraag = 'opnieuw tekenen';
+    }
     if (stand.einde) {
       if (!huidigEinde) eindeScherm();
       huidigEinde = true;
