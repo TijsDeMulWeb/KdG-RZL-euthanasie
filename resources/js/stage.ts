@@ -49,6 +49,8 @@ export interface Beeld {
   /** Hoeveel 'mensensterren' de hemel vullen (tot MAX_MENSEN), bv. één per euthanasie. */
   mensen?: number;
   mensenDuur?: number;
+  /** Welk deel (0 tot 1) van de mensensterren groter en goud oplicht; null of weglaten = geen. */
+  mensenUitgelicht?: number | null;
 }
 
 export const MAX_MENSEN = 4600;
@@ -146,29 +148,38 @@ const achtergrondFragment = /* glsl */ `
   }
 `;
 
-/** Melkweg: een zachte band van nevel en stof, met ruis opgebouwd, die heel traag verschuift. */
+/** Eén ster per mens; een deel ervan kan oplichten om een verhouding te tonen (bv. 73,7 % ouder dan 70). */
 const mensenVertex = /* glsl */ `
   attribute float aIndex;
   attribute float aFase;
+  attribute float aRang;
   uniform float uPR;
   uniform float uAantal;
   uniform float uTijd;
+  uniform float uFractie;
+  uniform float uNadruk;
   varying float vAlpha;
+  varying float vUitgelicht;
   void main() {
     // Elke ster licht zacht op zodra de teller haar nummer passeert.
     float aan = clamp((uAantal - aIndex) / 40.0, 0.0, 1.0);
-    vAlpha = aan * (0.55 + 0.25 * sin(uTijd * (0.6 + aFase) + aFase * 6.28));
-    gl_PointSize = (6.0 + aFase * 4.0) * uPR;
+    float uitgelicht = step(aRang, uFractie - 0.0000001) * uNadruk;
+    vUitgelicht = uitgelicht;
+    float gedimd = 1.0 - uNadruk * 0.6 * (1.0 - uitgelicht);
+    vAlpha = aan * gedimd * (0.55 + 0.25 * sin(uTijd * (0.6 + aFase) + aFase * 6.28) + uitgelicht * 0.35);
+    gl_PointSize = (6.0 + aFase * 4.0) * (1.0 + uitgelicht * 0.9) * uPR;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
 
 const mensenFragment = /* glsl */ `
   varying float vAlpha;
+  varying float vUitgelicht;
   void main() {
     float d = length(gl_PointCoord - 0.5) * 2.0;
     float a = (exp(-d * d * 10.0) + exp(-d * d * 50.0)) * 0.95 * vAlpha * (1.0 - smoothstep(0.8, 1.0, d));
-    gl_FragColor = vec4(vec3(1.0, 0.9, 0.74) * a, a);
+    vec3 kleur = mix(vec3(1.0, 0.9, 0.74), vec3(1.0, 0.76, 0.36), vUitgelicht);
+    gl_FragColor = vec4(kleur * a, a);
   }
 `;
 
@@ -201,6 +212,7 @@ const wereldFragment = /* glsl */ `
   }
 `;
 
+/** Melkweg: een zachte band van nevel en stof, met ruis opgebouwd, die heel traag verschuift. */
 const nevelVertex = /* glsl */ `
   varying vec2 vUv;
   void main() {
@@ -367,7 +379,7 @@ export class Stage {
   private duelLijn = new Lijnen(1);
 
   private cam = { x: 0, y: 0, zoom: 1 };
-  private sfeer = { achtergrond: 0, lijnAlpha: 0, lijnGroei: 0, duelAlpha: 0, duelGroei: 0, mensen: 0, wereld: 0 };
+  private sfeer = { achtergrond: 0, lijnAlpha: 0, lijnGroei: 0, duelAlpha: 0, duelGroei: 0, mensen: 0, mensenNadruk: 0, wereld: 0 };
   private huidigeLijnen: [string, string][] = [];
   private huidigDuel: [string, string] | null = null;
   private standaardCamera = true;
@@ -413,7 +425,7 @@ export class Stage {
     this.mensenMat = new THREE.ShaderMaterial({
       vertexShader: mensenVertex,
       fragmentShader: mensenFragment,
-      uniforms: { uPR: { value: pr }, uAantal: { value: 0 }, uTijd: { value: 0 } },
+      uniforms: { uPR: { value: pr }, uAantal: { value: 0 }, uTijd: { value: 0 }, uFractie: { value: 0 }, uNadruk: { value: 0 } },
       transparent: true,
       depthWrite: false,
       depthTest: false,
@@ -533,6 +545,22 @@ export class Stage {
     this.mensenGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     this.mensenGeo.setAttribute('aIndex', new THREE.BufferAttribute(index, 1));
     this.mensenGeo.setAttribute('aFase', new THREE.BufferAttribute(fase, 1));
+    this.mensenGeo.setAttribute('aRang', new THREE.BufferAttribute(new Float32Array(MAX_MENSEN).fill(1), 1));
+    this.mensenRangVoor = 0;
+  }
+
+  private mensenRangVoor = 0;
+
+  /**
+   * Geeft elk van de eerste N sterren een vaste, verspreide plaats in de rij (i * 7919 mod N).
+   * Zo licht bij 73,7 % exact 73,7 % van de getoonde sterren op, verspreid over het hele scherm.
+   */
+  private zetMensenRang(aantal: number) {
+    if (aantal === this.mensenRangVoor || aantal < 1) return;
+    this.mensenRangVoor = aantal;
+    const rang = new Float32Array(MAX_MENSEN).fill(1);
+    for (let i = 0; i < Math.min(aantal, MAX_MENSEN); i++) rang[i] = ((i * 7919) % aantal) / aantal;
+    this.mensenGeo.setAttribute('aRang', new THREE.BufferAttribute(rang, 1));
   }
 
   /** Zet de punten van de wereldkaart klaar (één keer per schermgrootte). */
@@ -649,6 +677,10 @@ export class Stage {
     gsap.killTweensOf(this.sfeer);
     gsap.to(this.sfeer, { achtergrond: beeld.achtergrond, duration: duur, ease });
     this.toonWereld(beeld.wereld, direct, duur);
+    if (beeld.mensen) this.zetMensenRang(beeld.mensen);
+    const uitgelicht = beeld.mensenUitgelicht ?? null;
+    if (uitgelicht !== null) this.mensenMat.uniforms.uFractie.value = uitgelicht;
+    gsap.to(this.sfeer, { mensenNadruk: uitgelicht !== null ? 1 : 0, duration: direct ? 0 : 1.2, ease });
     gsap.to(this.sfeer, {
       mensen: beeld.mensen ?? 0,
       duration: direct ? 0 : beeld.mensenDuur ?? duur,
@@ -904,6 +936,7 @@ export class Stage {
       this.wereldGeo.attributes.aHelder.needsUpdate = true;
     }
     this.mensenMat.uniforms.uAantal.value = this.sfeer.mensen;
+    this.mensenMat.uniforms.uNadruk.value = this.sfeer.mensenNadruk;
     this.nevelMat.uniforms.uAlpha.value = this.sfeer.achtergrond;
     this.nevelMat.uniforms.uAspect.value = this.W / this.H;
     this.nevelMat.uniforms.uZoom.value = 1 + (this.cam.zoom - 1) * 0.12;

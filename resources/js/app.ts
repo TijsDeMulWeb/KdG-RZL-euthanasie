@@ -85,7 +85,16 @@ async function start() {
       case 'pauze':
         return pauze(ctx, live, Number(stap.instellingen?.minuten ?? 10));
       case 'mensen':
-        return mensen(ctx, Number(stap.instellingen?.aantal ?? 3000), tekst(stap, 'tekst'), tekst(stap, 'bron'));
+        return mensen(
+          ctx,
+          live,
+          Number(stap.instellingen?.aantal ?? 3000),
+          tekst(stap, 'tekst'),
+          tekst(stap, 'bron'),
+          ((stap.instellingen?.uitlichtingen as { procent: number | string; tekst: string; vraag?: string | null }[] | undefined) ?? [])
+            .map((u) => ({ procent: Number(u.procent), tekst: u.tekst ?? '', vraag: u.vraag ?? null }))
+            .filter((u) => u.procent > 0 && u.procent <= 100),
+        );
       case 'sterrenbeeld': {
         const namen = [tekst(stap, 'links'), ...lijst(stap, 'rechts')];
         if (namen.some((n) => !klas.some((l) => l.naam === n))) return ontbrekend(ctx, 'leerling in het duel');

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\LesStaps\Schemas;
 
 use App\Filament\Support\Keuzes;
 use App\Models\LesStap;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -108,6 +109,31 @@ class LesStapForm
                             ->visible($is('mensen')),
                         TextInput::make('instellingen.bron')
                             ->label('Bron (alleen voor presentatoren)')
+                            ->visible($is('mensen')),
+                        Repeater::make('instellingen.uitlichtingen')
+                            ->label('Uitlichten, één per klik')
+                            ->helperText('Na de sterren licht elke klik dit deel van de sterren groter en goud op, met de tekst eronder. Bv. 73,7 en "was ouder dan 70".')
+                            ->columns(3)
+                            ->schema([
+                                Select::make('vraag')
+                                    ->label('Eerst laten raden (optioneel)')
+                                    ->helperText('De klas gokt op de gsm terwijl de sterren blijven staan. Daarna lichten de sterren op als antwoord.')
+                                    ->options(fn () => Keuzes::vragen(['getal']))
+                                    ->columnSpanFull(),
+                                TextInput::make('procent')
+                                    ->numeric()
+                                    ->minValue(0.1)
+                                    ->maxValue(100)
+                                    ->step(0.1)
+                                    ->suffix('%')
+                                    ->required(),
+                                TextInput::make('tekst')
+                                    ->required()
+                                    ->columnSpan(2),
+                            ])
+                            ->reorderable()
+                            ->defaultItems(0)
+                            ->addActionLabel('Uitlichting toevoegen')
                             ->visible($is('mensen')),
 
                         Select::make('instellingen.stelling')

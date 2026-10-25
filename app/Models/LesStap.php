@@ -54,7 +54,7 @@ class LesStap extends Model
             'publieksvragen' => empty($instellingen['vragen'])
                 ? 'Alle publieksvragen ('.Publieksvraag::count().')'
                 : count($instellingen['vragen']).' gekozen vragen',
-            'mensen' => ($instellingen['aantal'] ?? 3000).' sterren',
+            'mensen' => ($instellingen['aantal'] ?? 3000).' sterren'.(empty($instellingen['uitlichtingen']) ? '' : ', '.count($instellingen['uitlichtingen']).' keer uitlichten'),
             'wereldkaart' => empty($instellingen['vraag']) ? 'Zonder raden' : 'Eerst raden op de gsm',
             'sterrenbeeld' => 'Stelling '.ltrim($instellingen['stelling'] ?? '', 's').': '.($instellingen['links'] ?? '').' tegenover '.implode(' en ', $instellingen['rechts'] ?? []),
             default => '',

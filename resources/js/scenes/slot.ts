@@ -1,10 +1,10 @@
-import { antwoord, Code, CODE_NAAM, isGevoelig, klas, Leerling, leerling, StellingId, stellingen, zelfbeschikking } from '../data';
+import { antwoord, Code, CODE_NAAM, isGevoelig, klas, Leerling, leerling, StellingId, stellingen, vragen, zelfbeschikking } from '../data';
 import { hemel, HEMEL_MARGE, Pt, sterrenbeelden, vrijeY } from '../layout';
 import { Live } from '../live';
 import { esc, Vak } from '../overlay';
 import { Ctx, lineair, Scene } from '../scene';
 import { MAX_MENSEN, SterDoel } from '../stage';
-import { liveScene } from './gsm';
+import { liveScene, LiveStap } from './gsm';
 import { asLabels, klasInHemel, MIDDEN } from './opening';
 
 const STELLINGEN: StellingId[] = ['s1', 's2', 's3', 's4', 's5', 's6'];
@@ -173,32 +173,108 @@ export function afsluiter(ctx: Ctx, live: Live): Scene {
 
 // ---------- elk lichtje een mens ----------
 
-export function mensen(ctx: Ctx, aantal: number, zin: string, bron = ''): Scene {
+export interface Uitlichting {
+  procent: number;
+  tekst: string;
+  /** Optioneel: eerst laten raden met deze gsm-vraag (type getal), terwijl de sterren blijven staan. */
+  vraag?: string | null;
+}
+
+/**
+ * De hemel vult zich met één ster per mens. Daarna licht elke klik een deel van de sterren op,
+ * bv. 73,7 % "was ouder dan 70", eventueel na een raadronde op de gsm.
+ * Welke sterren oplichten is willekeurig: het toont de verhouding.
+ */
+export function mensen(ctx: Ctx, live: Live, aantal: number, zin: string, bron = '', uitlichtingen: Uitlichting[] = []): Scene {
   const AANTAL = Math.min(Math.max(1, aantal), MAX_MENSEN);
   const DUUR = 12;
   const nf = new Intl.NumberFormat('nl-BE');
+  const pct = new Intl.NumberFormat('nl-BE', { maximumFractionDigits: 1 });
   let teller = 0;
-  return lineair(`${nf.format(AANTAL)} sterren`, [
+
+  function startTeller() {
+    clearInterval(teller);
+    const tik = () => {
+      const el = document.getElementById('mensenteller');
+      if (!el) return clearInterval(teller);
+      el.textContent = nf.format(Math.min(AANTAL, ctx.stage.mensenNu));
+    };
+    tik();
+    teller = window.setInterval(tik, 50);
+  }
+
+  const getal: Vak = { regio: 'top', klasse: 'mensen-teller', html: '<span id="mensenteller">0</span>' };
+  const sterren = (uitgelicht: number | null, duur = 1.2) => ({
+    achtergrond: 0.5,
+    sterren: klasInHemel(ctx, { alpha: uitgelicht === null ? 0.9 : 0.35, label: uitgelicht === null ? 0.6 : 0.3 }),
+    mensen: AANTAL,
+    mensenDuur: 0.6,
+    mensenUitgelicht: uitgelicht,
+    duur,
+  });
+
+  /** Gemiddelde gok van de klas, alleen als er antwoorden zijn. */
+  function gemiddelde(): string | null {
+    const waarden = live.antwoorden.map((a) => Number(a.waarde)).filter((w) => Number.isFinite(w));
+    if (!waarden.length) return null;
+    return pct.format(waarden.reduce((a, b) => a + b, 0) / waarden.length);
+  }
+
+  const stappen: LiveStap[] = [
     {
       label: `De hemel vult zich met ${nf.format(AANTAL)} sterren`,
-      notities: bron ? [`Bron: ${bron}`] : [],
-      render: ({ direct }) => {
-        ctx.stage.toon({ achtergrond: 0.5, sterren: klasInHemel(ctx, { alpha: 0.9, label: 0.6 }), mensen: AANTAL, mensenDuur: DUUR, duur: 1.6 }, direct);
-        const vakken: Record<string, Vak> = {
-          getal: { regio: 'top', klasse: 'mensen-teller', html: '<span id="mensenteller">0</span>' },
-        };
+      vraag: null,
+      notities: () => (bron ? [`Bron: ${bron}`] : []),
+      render: (direct) => {
+        ctx.stage.toon({ ...sterren(null, 1.6), mensenDuur: DUUR }, direct);
+        const vakken: Record<string, Vak> = { getal };
         if (zin) vakken.zin = { regio: 'bottom', klasse: 'uitleg', html: esc(zin), delay: DUUR - 2 };
         ctx.overlay.toon(vakken, direct);
-        clearInterval(teller);
-        const tik = () => {
-          const el = document.getElementById('mensenteller');
-          if (!el) return clearInterval(teller);
-          el.textContent = nf.format(Math.min(AANTAL, ctx.stage.mensenNu));
-        };
-        teller = window.setInterval(tik, 50);
+        startTeller();
       },
     },
-  ]);
+  ];
+
+  for (const u of uitlichtingen) {
+    const raadvraag = u.vraag && vragen[u.vraag] ? vragen[u.vraag] : null;
+    if (raadvraag) {
+      stappen.push({
+        label: `Raden: ${raadvraag.tekst}`,
+        vraag: raadvraag.id,
+        render: (direct) => {
+          ctx.stage.toon(sterren(null), direct);
+          ctx.overlay.toon(
+            {
+              getal,
+              raadvraag: { regio: 'bottom', klasse: 'uitgelicht', html: esc(raadvraag.tekst ?? '') },
+              raadteller: { regio: 'bottom', klasse: 'hulpzin', html: `${live.antwoorden.length} van ${live.deelnemers.length} antwoordden`, volgorde: 1 },
+            },
+            direct,
+          );
+          startTeller();
+        },
+      });
+    }
+    stappen.push({
+      label: `${pct.format(u.procent)} % ${u.tekst}`,
+      vraag: null,
+      bekijk: raadvraag?.id,
+      notities: () => [`Ongeveer ${nf.format(Math.round((AANTAL * u.procent) / 100))} van de ${nf.format(AANTAL)} sterren lichten op. Welke is willekeurig.`],
+      render: (direct) => {
+        ctx.stage.toon(sterren(u.procent / 100), direct);
+        const gok = raadvraag ? gemiddelde() : null;
+        const vakken: Record<string, Vak> = {
+          getal,
+          uitgelicht: { regio: 'bottom', klasse: 'uitgelicht', html: `<span class="pct">${pct.format(u.procent)} %</span> ${esc(u.tekst)}`, delay: 0.4 },
+        };
+        if (gok) vakken.gok = { regio: 'bottom', klasse: 'hulpzin', html: `Jullie gokten gemiddeld ${gok} %`, volgorde: 1, delay: 1.2 };
+        ctx.overlay.toon(vakken, direct);
+        startTeller();
+      },
+    });
+  }
+
+  return liveScene(`${nf.format(AANTAL)} sterren`, live, stappen);
 }
 
 // ---------- sterrenbeelden en duel ----------

@@ -122,6 +122,12 @@ class OpdrachtwijzerSeeder extends Seeder
             'aantal' => 4486,
             'tekst' => '4.486 mensen kregen in 2025 euthanasie in België. Elk lichtje is een mens.',
             'bron' => 'FCEE, cijfers 2025 (FOD Volksgezondheid, 20 maart 2026)',
+            'uitlichtingen' => [
+                ['procent' => 73.7, 'tekst' => 'was ouder dan 70', 'vraag' => 'cijfer-70'],
+                ['procent' => 49.9, 'tekst' => 'had kanker'],
+                ['procent' => 1.7, 'tekst' => 'had dementie'],
+                ['procent' => 1.6, 'tekst' => 'had een psychiatrische aandoening'],
+            ],
         ]]));
 
         $this->voegToe(['theorie', ['kaart' => 'begrippen']], na: ['openVraag', 'betekenis']);

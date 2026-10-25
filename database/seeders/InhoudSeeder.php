@@ -105,7 +105,6 @@ class InhoudSeeder extends Seeder
             ['commissie', ['dossiers' => ['voltooid', 'dementie']]],
             ['getallenlijn', ['vraag' => 'cijfer-2022']],
             ['mensen', ['aantal' => 3000, 'tekst' => 'Zo’n 3.000 mensen kregen in 2022 euthanasie in België. Elk lichtje is een mens.', 'bron' => '"Zo\'n 3.000 mensen" in 2022, VRT NWS februari 2023 (p. 14). Afgerond getal.']],
-            ['getallenlijn', ['vraag' => 'cijfer-70']],
             ['theorie', ['kaart' => 'cijfers']],
             ['theorie', ['kaart' => 'afbakening']],
             ['getallenlijn', ['vraag' => 'abortus-weken']],
